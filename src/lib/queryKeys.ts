@@ -26,3 +26,9 @@ export const serviceKeys = {
   list: () => [...serviceKeys.all, "list"] as const,
   detail: (slug: string) => [...serviceKeys.all, "detail", slug] as const,
 };
+
+export const quoteKeys = {
+  all: ["quotes"] as const,
+  services: () => [...quoteKeys.all, "services"] as const,
+  draft: (id: string) => [...quoteKeys.all, "draft", id] as const,
+};
