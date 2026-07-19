@@ -646,3 +646,642 @@ Validate with Zod; fall back to safe defaults on parse failure.
 - [ ] Semantic HTML, labels, focus, keyboard, contrast
 - [ ] Design tokens only; no random colors
 - [ ] Reduced-motion respected; animations do not delay primary actions
+
+---
+
+# Testing with Vitest
+
+This section is the canonical reference for writing and running unit / integration
+tests across **both** the backend (`codeventure_backend`) and frontend
+(`codeventure_frontend`). Vitest is the single runner; each project wires it up
+independently with the same mental model.
+
+> **Rule of thumb:** every new module ships with a test file. If a change adds
+> any non-trivial logic — Zod schema, API fetcher, controller, hook, form
+> validation — add or update the matching spec before merging.
+
+## 1. Backend — `codeventure_backend`
+
+### 1.1 Install (one-time)
+
+```bash
+cd codeventure_backend
+npm install -D vitest @vitest/coverage-v8 supertest @types/supertest \
+  @testing-library/jest-dom @testing-library/react @testing-library/user-event \
+  happy-dom msw
+```
+
+Already-present packages to keep using: `prisma`, `better-auth`, `zod`,
+`express`, `http-status`. Vitest config lives next to `tsconfig.json`.
+
+### 1.2 Configuration
+
+```ts
+// codeventure_backend/vitest.config.ts
+import { defineConfig } from "vitest/config";
+import path from "node:path";
+
+export default defineConfig({
+  test: {
+    environment: "node",
+    globals: true,
+    setupFiles: ["./vitest.setup.ts"],
+    include: ["src/**/*.{test,spec}.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      exclude: [
+        "src/scripts/**",
+        "src/server.ts",
+        "prisma/generated/**",
+      ],
+    },
+  },
+  resolve: {
+    alias: { "@": path.resolve(__dirname, "./src") },
+  },
+});
+```
+
+```ts
+// codeventure_backend/vitest.setup.ts
+// Set test env *before* any module that reads process.env is imported.
+process.env.NODE_ENV = "test";
+process.env.DATABASE_URL ??=
+  "postgresql://postgres:postgres@localhost:5432/codeventure_test";
+process.env.BETTER_AUTH_SECRET ??= "test-secret-do-not-use-in-prod";
+process.env.BETTER_AUTH_URL ??= "http://localhost:3000";
+```
+
+Add scripts to `codeventure_backend/package.json`:
+
+```jsonc
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ai": "npx tsx src/scripts/testAiResponse.ts"
+  }
+}
+```
+
+### 1.3 File layout
+
+```
+codeventure_backend/
+├─ src/
+│  ├─ modules/
+│  │  ├─ auth/
+│  │  │  ├─ auth.controller.ts
+│  │  │  ├─ auth.service.ts
+│  │  │  ├─ auth.validation.ts
+│  │  │  ├─ auth.route.ts
+│  │  │  └─ auth.service.test.ts      ← co-located spec
+│  └─ lib/
+│     └─ token.test.ts
+└─ vitest.config.ts
+```
+
+Tests sit **next to the file they exercise** (`.test.ts` suffix), not in a
+top-level `__tests__/` directory.
+
+### 1.4 Patterns
+
+#### Testing pure functions / Zod schemas
+
+```ts
+// src/modules/auth/auth.validation.test.ts
+import { describe, expect, it } from "vitest";
+import { signInSchema } from "./auth.validation";
+
+describe("signInSchema", () => {
+  it("accepts a valid email + password", () => {
+    const result = signInSchema.safeParse({
+      email: "[email protected]",
+      password: "correcthorsebatterystaple",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it.each([
+    ["missing email", { password: "abcdefgh1" }],
+    ["missing password", { email: "[email protected]" }],
+    ["bad email shape", { email: "not-an-email", password: "abcdefgh1" }],
+  ])("rejects %s", (_label, input) => {
+    const result = signInSchema.safeParse(input);
+    expect(result.success).toBe(false);
+  });
+});
+```
+
+#### Testing a service that depends on Prisma
+
+Mock the Prisma client rather than running migrations in CI:
+
+```ts
+// src/modules/auth/auth.service.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/errorHelpers/AppError";
+import { signIn } from "./auth.service";
+
+// Mock only what the service touches.
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    user: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+  },
+}));
+
+import { prisma } from "@/lib/prisma";
+
+describe("signIn service", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("throws 401 when user does not exist", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+    await expect(
+      signIn({ email: "[email protected]", password: "anything1" }),
+    ).rejects.toMatchObject({ statusCode: 401 });
+  });
+
+  it("returns the session payload on success", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "u1",
+      email: "[email protected]",
+      passwordHash: "hashed",
+    } as never);
+
+    const session = await signIn({
+      email: "[email protected]",
+      password: "anything1",
+    });
+
+    expect(session.user.id).toBe("u1");
+    expect(session.expiresAt).toBeInstanceOf(Date);
+  });
+});
+```
+
+#### Testing an Express route via `supertest`
+
+```ts
+// src/modules/auth/auth.route.test.ts
+import { describe, expect, it, vi } from "vitest";
+import express from "express";
+import request from "supertest";
+
+// Mock the controller so the route wiring is what we test, not the service.
+vi.mock("./auth.controller", () => ({
+  authController: {
+    signIn: vi.fn((req, res) =>
+      res.status(200).json({ ok: true, email: req.body.email }),
+    ),
+    signOut: vi.fn((_req, res) => res.status(204).end()),
+  },
+}));
+
+import { authRouter } from "./auth.route";
+
+function buildApp() {
+  const app = express();
+  app.use(express.json());
+  app.use("/api/v1/auth", authRouter);
+  return app;
+}
+
+describe("POST /api/v1/auth/sign-in", () => {
+  it("returns 200 and echoes the email", async () => {
+    const res = await request(buildApp())
+      .post("/api/v1/auth/sign-in")
+      .send({ email: "[email protected]", password: "anything1" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+});
+```
+
+#### Testing the global error handler
+
+```ts
+// src/middleware/globalErrorHandler.test.ts
+import { describe, expect, it } from "vitest";
+import express from "express";
+import request from "supertest";
+import { globalErrorHandler } from "./globalErrorHandler";
+import { ApiError } from "@/errorHelpers/AppError";
+
+describe("globalErrorHandler", () => {
+  it("maps ApiError to status + envelope", async () => {
+    const app = express();
+    app.get("/boom", (_req, _res, next) =>
+      next(new ApiError(404, "NOT_FOUND", "User not found")),
+    );
+    app.use(globalErrorHandler);
+
+    const res = await request(app).get("/boom");
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe("NOT_FOUND");
+  });
+});
+```
+
+### 1.5 Run
+
+```bash
+# All tests, one shot
+npm test
+
+# Watch mode while coding
+npm run test:watch
+
+# With coverage (requires the @vitest/coverage-v8 package)
+npm run test:coverage
+```
+
+Coverage thresholds (recommended; bump as the suite matures):
+
+```ts
+// vitest.config.ts
+test: {
+  coverage: {
+    thresholds: { lines: 80, functions: 80, statements: 80, branches: 70 },
+  },
+}
+```
+
+---
+
+## 2. Frontend — `codeventure_frontend`
+
+### 2.1 Install (one-time)
+
+```bash
+cd codeventure_frontend
+npm install -D vitest @vitest/coverage-v8 @testing-library/react \
+  @testing-library/jest-dom @testing-library/user-event \
+  happy-dom @vitejs/plugin-react jsdom
+```
+
+If TanStack Query is involved also: `@testing-library/react-hooks` is **not**
+needed — React Testing Library 16+ covers hooks via `renderHook`.
+
+### 2.2 Configuration
+
+```ts
+// codeventure_frontend/vitest.config.ts
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import path from "node:path";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "happy-dom", // not jsdom — Tailwind v4 + RSC happy-dom is faster
+    globals: true,
+    setupFiles: ["./vitest.setup.ts"],
+    include: ["src/**/*.{test,spec}.tsx"],
+    css: false,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      exclude: ["src/app/**/loading.tsx", "src/app/**/error.tsx"],
+    },
+  },
+  resolve: {
+    alias: { "@": path.resolve(__dirname, "./src") },
+  },
+});
+```
+
+```ts
+// codeventure_frontend/vitest.setup.ts
+import "@testing-library/jest-dom/vitest";
+import { afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  sessionStorage.clear();
+});
+```
+
+Add scripts to `codeventure_frontend/package.json`:
+
+```jsonc
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  }
+}
+```
+
+### 2.3 File layout
+
+```
+codeventure_frontend/
+└─ src/
+   ├─ lib/
+   │  ├─ api/
+   │  │  ├─ auth.ts
+   │  │  └─ auth.test.ts          ← co-located unit tests for fetchers
+   │  └─ auth/
+   │     ├─ session.ts
+   │     └─ session.test.ts
+   ├─ types/
+   │  └─ auth.test.ts             ← schema-level tests live with the schema
+   ├─ hooks/
+   │  └─ use-sign-out.test.ts
+   └─ app/
+      └─ sign-in/
+         └─ _components/
+            ├─ sign-in-form.tsx
+            └─ sign-in-form.test.tsx
+```
+
+`.tsx` for components; `.ts` for everything else.
+
+### 2.4 Patterns
+
+#### Testing Zod schemas
+
+```ts
+// src/types/auth.test.ts
+import { describe, expect, it } from "vitest";
+import {
+  resetPasswordSchema,
+  scorePassword,
+} from "./auth";
+
+describe("resetPasswordSchema", () => {
+  it("requires matching passwords", () => {
+    const result = resetPasswordSchema.safeParse({
+      token: "abc",
+      password: "Sup3rSecret!",
+      confirmPassword: "Different!1",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a strong matching pair", () => {
+    const result = resetPasswordSchema.safeParse({
+      token: "abc",
+      password: "Sup3rSecret!",
+      confirmPassword: "Sup3rSecret!",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("scorePassword", () => {
+  it("grades a strong password as 'strong'", () => {
+    expect(scorePassword("Tr0ub4dor&3-x!")).toBe("strong");
+  });
+
+  it("grades 'password' as 'too-weak'", () => {
+    expect(scorePassword("password")).toBe("too-weak");
+  });
+});
+```
+
+#### Testing API fetchers (mock `apiFetch`)
+
+```ts
+// src/lib/api/auth.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("./client", () => ({
+  apiFetch: vi.fn(),
+}));
+
+import { apiFetch } from "./client";
+import { ApiError, signIn } from "./auth";
+
+describe("signIn", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns parsed data on success", async () => {
+    vi.mocked(apiFetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: { user: { id: "u1" }, expiresAt: "2026-01-01T00:00:00Z" },
+    });
+
+    const session = await signIn({
+      email: "[email protected]",
+      password: "Sup3rSecret!",
+    });
+
+    expect(session.user.id).toBe("u1");
+  });
+
+  it("throws ApiError on 401", async () => {
+    vi.mocked(apiFetch).mockResolvedValue({
+      ok: false,
+      status: 401,
+      error: {
+        error: { code: "INVALID_CREDENTIALS", message: "Bad creds" },
+      },
+    });
+
+    await expect(
+      signIn({ email: "[email protected]", password: "x" }),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+});
+```
+
+#### Testing a Server Component using `next/cache` mocks
+
+```tsx
+// src/app/(account)/account/loading.test.tsx
+import { describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import Loading from "./loading";
+
+describe("Account loading state", () => {
+  it("renders a polite busy region", () => {
+    render(<Loading />);
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
+    expect(screen.getAllByRole("status")).toHaveLength(2); // skeletons + heading
+  });
+});
+```
+
+#### Testing a Client form component
+
+```tsx
+// src/app/sign-in/_components/sign-in-form.test.tsx
+import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/react";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock("@/lib/api/auth", () => ({
+  signIn: vi.fn(),
+  ApiError: class ApiError extends Error {
+    constructor(public status: number, public body: { error: { message: string } }) {
+      super(body.error.message);
+    }
+  },
+}));
+
+import { signIn } from "@/lib/api/auth";
+import { SignInForm } from "./sign-in-form";
+
+describe("SignInForm", () => {
+  it("calls signIn with email and password", async () => {
+    vi.mocked(signIn).mockResolvedValue({} as never);
+    const user = userEvent.setup();
+
+    render(<SignInForm />);
+    await user.type(screen.getByLabelText(/email/i), "[email protected]");
+    await user.type(screen.getByLabelText(/password/i), "Sup3rSecret!");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(signIn).toHaveBeenCalledWith({
+        email: "[email protected]",
+        password: "Sup3rSecret!",
+      });
+    });
+  });
+});
+```
+
+#### Testing a hook that depends on a Client Component
+
+```tsx
+// src/lib/auth/use-sign-out.test.ts
+import { renderHook, act } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+const replace = vi.fn();
+const refresh = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace, refresh }),
+}));
+
+const signOut = vi.fn();
+vi.mock("@/lib/api/auth", () => ({ signOut }));
+
+import { useSignOut } from "./use-sign-out";
+import { useAuth as _realUseAuth } from "./provider";
+
+vi.mock("./provider", () => ({
+  useAuth: () => ({ clearSession: vi.fn() }),
+}));
+
+describe("useSignOut", () => {
+  it("calls signOut then navigates home and refreshes", async () => {
+    const { result } = renderHook(() => useSignOut());
+
+    await act(async () => {
+      await result.current.signOut();
+    });
+
+    expect(signOut).toHaveBeenCalledOnce();
+    expect(replace).toHaveBeenCalledWith("/");
+    expect(refresh).toHaveBeenCalledOnce();
+  });
+});
+```
+
+#### Testing Server Components that read cookies (`getSession()`)
+
+The Server Component imports `server-only`, so the test runs in a Node
+environment where `next/headers#cookies()` is mocked:
+
+```tsx
+// src/lib/auth/session.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const cookieStore = new Map<string, string>();
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({
+    get: (name: string) => {
+      const value = cookieStore.get(name);
+      return value ? { name, value } : undefined;
+    },
+  })),
+}));
+
+vi.mock("@/lib/api/auth", () => ({
+  fetchSession: vi.fn(async () =>
+    cookieStore.get("cv_session")
+      ? { user: { id: "u1" }, expiresAt: "2026-01-01T00:00:00Z" }
+      : null,
+  ),
+}));
+
+import { getSession } from "./session";
+
+describe("getSession", () => {
+  beforeEach(() => cookieStore.clear());
+
+  it("returns null when no session cookie is present", async () => {
+    expect(await getSession()).toBeNull();
+  });
+
+  it("returns the session when the cookie is present", async () => {
+    cookieStore.set("cv_session", "opaque-token");
+    await expect(getSession()).resolves.toMatchObject({ user: { id: "u1" } });
+  });
+});
+```
+
+### 2.5 Run
+
+```bash
+# All tests, one shot
+npm test
+
+# Watch mode while coding
+npm run test:watch
+
+# With coverage
+npm run test:coverage
+```
+
+---
+
+## 3. Shared rules
+
+- **Co-locate** specs next to the file they cover. Mirror the file name and
+  add `.test.ts` / `.test.tsx`.
+- **No live network.** Mock `fetch`, `apiFetch`, `cookies()`, or `next/router`
+  in unit tests. Reserve integration tests for a separate `tests/e2e/` folder
+  using Playwright (out of scope for Vitest).
+- **Reset between tests.** Use `beforeEach(() => vi.clearAllMocks())` and the
+  setup-file `cleanup()` so state never leaks.
+- **Type the mock.** Prefer `vi.mocked(apiFetch)` over `apiFetch as any` so
+  autocomplete still works.
+- **Don't test the framework.** If a spec is exercising how `useState` works,
+  delete it. Test what your code does, not what React does.
+- **One assertion per concept.** Group related expectations in a single `it`
+  when they describe one behaviour; split them when they describe two.
+- **Naming.** Spec titles read like sentences: `it("redirects to sign-in when
+  the session is missing", ...)`.
+
+---
+
+## 4. Testing checklist (per PR)
+
+- [ ] New schema or validation rule → schema test added/updated.
+- [ ] New fetcher or controller → fetcher/controller test added/updated.
+- [ ] New Client form → happy-path + 1 failure-path spec.
+- [ ] New hook → `renderHook` spec covering both success and error.
+- [ ] New Server Component shell → at least one rendering/loading spec.
+- [ ] `npm test` runs locally before pushing.
+- [ ] Coverage thresholds respected (or a written exemption in the PR body).
