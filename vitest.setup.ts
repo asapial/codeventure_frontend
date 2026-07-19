@@ -4,8 +4,14 @@ import { cleanup } from "@testing-library/react";
 
 afterEach(() => {
   cleanup();
-  localStorage.clear();
-  sessionStorage.clear();
+  // `happy-dom` only attaches `localStorage` when the spec actually needs the
+  // DOM. Pure-schema / pure-mock specs skip that, so guard against `undefined`.
+  try {
+    localStorage?.clear?.();
+    sessionStorage?.clear?.();
+  } catch {
+    // ignore — some environments don't expose a storage at all
+  }
   vi.restoreAllMocks();
 });
 
