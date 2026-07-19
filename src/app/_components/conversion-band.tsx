@@ -21,14 +21,14 @@ export function ConversionBand({ headline, subheadline, ctaLabel, ctaHref }: Pro
         size="5xl"
         className="flex flex-col items-start justify-between gap-10 py-20 sm:py-24 md:flex-row md:items-center"
       >
-        <FadeIn trigger="mount" y={20} duration={0.6} className="max-w-3xl">
+        <FadeIn trigger="mount" y={20} duration={0.6} className="max-w-3xl flex-1">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-100">
             <CalendarDays className="size-4" aria-hidden="true" /> Your next build starts here
           </div>
           <h2 className="mt-5 text-balance text-4xl font-bold tracking-[-0.04em] sm:text-5xl">{headline}</h2>
           {subheadline ? <p className="mt-5 max-w-2xl text-lg leading-8 text-blue-100">{subheadline}</p> : null}
         </FadeIn>
-        <FadeIn trigger="mount" delay={0.15} y={20} duration={0.6}>
+        <FadeIn trigger="mount" delay={0.15} y={20} duration={0.6} className="shrink-0">
           <Link
             href={ctaHref}
             className={cn(

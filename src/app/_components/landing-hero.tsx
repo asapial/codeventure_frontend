@@ -40,8 +40,7 @@ export function LandingHero({
       />
       <div className="absolute -left-48 top-40 -z-10 size-96 rounded-full bg-cyan-400/10 blur-3xl" />
       <PageContainer
-        size="7xl"
-        className="grid min-h-[calc(100svh-4.5rem)] items-center gap-14 py-16 sm:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:py-28"
+        className="grid min-h-[calc(100svh-4.5rem)] items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:py-24"
       >
         <FadeIn
           trigger="mount"
@@ -53,7 +52,7 @@ export function LandingHero({
             <Sparkles className="size-3.5" aria-hidden="true" />
             Digital product studio for ambitious teams
           </div>
-          <h1 className="mt-7 text-balance text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-7 text-balance text-4xl font-bold leading-[1.02] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
             {headline.split("digital products")[0]}
             <span className="premium-gradient-text">digital products</span>
             {headline.split("digital products")[1]}
@@ -118,7 +117,7 @@ export function LandingHero({
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   { icon: Layers3, label: "Design", value: "Clear" },
                   { icon: Code2, label: "Build", value: "Robust" },

@@ -10,7 +10,11 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
   const token = (await searchParams).token?.trim();
   if (!token) redirect("/forgot-password");
   return (
-    <AuthShell eyebrow="Secure your account" title="Choose a new password" description="Use a strong, unique password you don’t use anywhere else."
+    <AuthShell
+      variant="reset"
+      eyebrow="Secure your account"
+      title="Choose a new password"
+      description="Use a strong, unique password you don’t use anywhere else."
       after={<><span>Link expired? </span><Link href="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">Request a new one</Link></>}>
       <ResetPasswordForm token={token} />
     </AuthShell>

@@ -10,10 +10,14 @@ export const metadata: Metadata = { title: "Verify your email", description: "Ve
 export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ email?: string; token?: string }> }) {
   const session = await getSession();
   const sp = await searchParams;
-  if (session) redirect("/account");
+  if (session) redirect("/dashboard");
   const initialToken = sp.token && sp.token.length >= 20 ? sp.token : "";
   return (
-    <AuthShell eyebrow="One quick step" title="Verify your email" description="Enter the six-digit code from your inbox or use the secure verification link we sent."
+    <AuthShell
+      variant="verify"
+      eyebrow="One quick step"
+      title="Verify your email"
+      description="Enter the six-digit code from your inbox or use the secure verification link we sent."
       after={<><span>Wrong address? </span><Link href="/sign-in" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">Sign in instead</Link></>}>
       <VerifyEmailForm initialEmail={sp.email ?? ""} initialToken={initialToken} />
     </AuthShell>

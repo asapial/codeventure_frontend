@@ -3,14 +3,13 @@ import { cn } from "@/lib/utils";
 
 /**
  * Centered, width-capped container used by every page's prose/section
- * content. Default max width is `5xl` (~64 rem). Wider sections can opt
- * into `max-w-6xl` / `max-w-7xl` via the `size` prop, but the codebase
- * default — and the one mandated by `create-page/SKILL.md` — is `5xl`.
+ * content. The site-wide content boundary is `5xl` (~64 rem), while
+ * intentionally narrow reading layouts can opt into `4xl`.
  *
  * Use this for any text column, card grid, or form area so reading width
  * stays predictable and centered.
  */
-export type PageContainerSize = "4xl" | "5xl" | "6xl" | "7xl";
+export type PageContainerSize = "4xl" | "5xl";
 
 export interface PageContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -21,8 +20,6 @@ export interface PageContainerProps extends HTMLAttributes<HTMLDivElement> {
 const SIZE_CLASSES: Record<PageContainerSize, string> = {
   "4xl": "max-w-4xl",
   "5xl": "max-w-5xl",
-  "6xl": "max-w-6xl",
-  "7xl": "max-w-7xl",
 };
 
 export function PageContainer({

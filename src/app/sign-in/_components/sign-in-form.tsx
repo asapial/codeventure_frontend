@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Loader2, LogIn, Mail, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { AuthField } from "@/components/shared/auth-field";
 import { signInSchema, type SignInInput } from "@/types/auth";
 import { ApiError, signIn } from "@/lib/api/auth";
 
@@ -25,6 +25,7 @@ export function SignInForm({ redirectTo }: Props) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<z.input<typeof signInSchema>, unknown, z.output<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
@@ -35,6 +36,8 @@ export function SignInForm({ redirectTo }: Props) {
       website: "",
     },
   });
+
+  const remember = useWatch({ control, name: "rememberMe" }) ?? false;
 
   async function onSubmit(values: SignInInput) {
     if (values.website && values.website.length > 0) {
@@ -76,65 +79,107 @@ export function SignInForm({ redirectTo }: Props) {
       aria-busy={submitting}
       className="space-y-5"
     >
-      <div className="space-y-2">
-        <Label htmlFor="signin-email">Email</Label>
-        <Input
-          id="signin-email"
-          type="email"
-          autoComplete="email"
-          aria-invalid={!!errors.email}
-          {...register("email")}
-        />
-        {errors.email ? (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        ) : null}
-      </div>
+      <AuthField
+        label="Work email"
+        type="email"
+        placeholder="you@company.com"
+        autoComplete="email"
+        icon={<Mail className="size-4" aria-hidden="true" />}
+        aria-invalid={!!errors.email}
+        aria-errormessage={errors.email?.message ?? null}
+        hint="We'll never share your email."
+        {...register("email")}
+      />
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="signin-password">Password</Label>
+      <AuthField
+        label="Password"
+        type="password"
+        placeholder="••••••••"
+        autoComplete="current-password"
+        reveal
+        icon={<ShieldCheck className="size-4" aria-hidden="true" />}
+        aria-invalid={!!errors.password}
+        aria-errormessage={errors.password?.message ?? null}
+        trailing={
           <Link
             href="/forgot-password"
-            className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400"
           >
             Forgot?
           </Link>
-        </div>
-        <Input
-          id="signin-password"
-          type="password"
-          autoComplete="current-password"
-          aria-invalid={!!errors.password}
-          {...register("password")}
-        />
-        {errors.password ? (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
-        ) : null}
-      </div>
+        }
+        {...register("password")}
+      />
 
-      <label className="flex items-center gap-2 text-sm">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={remember}
+        onClick={(event) => {
+          const target = event.currentTarget;
+          const input = target.parentElement?.querySelector<HTMLInputElement>(
+            "input[name='rememberMe']",
+          );
+          if (input) {
+            input.click();
+          }
+        }}
+        className="group/check flex w-full items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/40 px-3.5 py-3 text-left text-sm transition-all hover:border-blue-200 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-blue-950 dark:bg-blue-950/20 dark:hover:border-blue-900 dark:hover:bg-blue-950/40"
+      >
+        <div className="space-y-0.5">
+          <p className="font-semibold text-foreground">Keep me signed in</p>
+          <p className="text-xs text-muted-foreground">
+            Skip the password on this device for 30 days.
+          </p>
+        </div>
+        <span
+          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+            remember ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className={`inline-block size-4 transform rounded-full bg-white shadow transition ${
+              remember ? "translate-x-4" : "translate-x-0.5"
+            }`}
+          />
+        </span>
         <input
           type="checkbox"
-          className="h-4 w-4 rounded border-input"
+          className="sr-only"
+          aria-label="Remember me on this device"
           {...register("rememberMe")}
         />
-        <span className="text-muted-foreground">Keep me signed in</span>
-      </label>
+      </button>
 
       {/* Honeypot */}
       <div aria-hidden="true" className="hidden">
-        <Label htmlFor="signin-website">Website</Label>
-        <Input
-          id="signin-website"
+        <input
           tabIndex={-1}
           autoComplete="off"
+          aria-hidden="true"
           {...register("website")}
         />
       </div>
 
-      <Button type="submit" disabled={submitting} className="w-full">
-        {submitting ? "Signing in…" : "Sign in"}
+      <Button
+        type="submit"
+        disabled={submitting}
+        className="group h-12 w-full rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-base font-bold text-white shadow-lg shadow-blue-600/25 hover:-translate-y-0.5 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 hover:shadow-xl hover:shadow-blue-600/35 active:translate-y-0"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            Signing you in…
+          </>
+        ) : (
+          <>
+            <LogIn className="size-4 transition-transform group-hover:-translate-y-0.5" aria-hidden="true" />
+            Step inside
+          </>
+        )}
       </Button>
+
     </form>
   );
 }

@@ -57,7 +57,7 @@ export default async function CaseStudyPage({
   return (
     <article>
       <header className="border-b bg-gradient-to-b from-background to-muted/40">
-        <PageContainer size="4xl" className="py-12 sm:py-16">
+        <PageContainer size="5xl" className="py-12 sm:py-16">
           <FadeIn trigger="mount">
             <Link
             href="/portfolio"
@@ -129,7 +129,7 @@ export default async function CaseStudyPage({
       ) : null}
 
       <section className="border-b">
-        <PageContainer size="4xl" className="py-12">
+        <PageContainer size="5xl" className="py-12">
           <FadeIn trigger="mount">
             <div className="space-y-8">
               <div>
@@ -165,7 +165,7 @@ export default async function CaseStudyPage({
 
       {cs.sections.length > 0 ? (
         <section className="border-b">
-          <PageContainer size="4xl" className="py-12">
+          <PageContainer size="5xl" className="py-12">
             <Stagger className="space-y-12" stagger={0.08}>
               {cs.sections.map((s, idx) => (
                 <div key={s.heading} className="grid gap-6 md:grid-cols-2">
@@ -225,7 +225,7 @@ export default async function CaseStudyPage({
 
       {cs.testimonial ? (
         <section className="border-b">
-          <PageContainer size="4xl" className="py-12">
+          <PageContainer size="5xl" className="py-12">
             <FadeIn trigger="mount">
               <Card>
                 <CardContent className="space-y-4 p-6">
@@ -253,16 +253,21 @@ export default async function CaseStudyPage({
       ) : null}
 
       <section className="bg-foreground text-background">
-        <PageContainer size="4xl" className="py-12 text-center">
-          <FadeIn trigger="mount">
-            <h2 className="text-2xl font-semibold sm:text-3xl">
-              Want outcomes like this?
-            </h2>
+        <PageContainer size="5xl" className="py-12">
+          <FadeIn trigger="mount" className="flex flex-col items-start justify-between gap-6 text-center sm:flex-row sm:items-center sm:text-left">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-semibold sm:text-3xl">
+                Want outcomes like this?
+              </h2>
+              <p className="mt-3 text-background/80">
+                Tell us about your project and we will reply within two business days.
+              </p>
+            </div>
             <Link
               href="/request-quote"
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "mt-6 bg-background text-foreground hover:bg-background/90",
+                "shrink-0 bg-background text-foreground hover:bg-background/90",
               )}
             >
               Request a quote

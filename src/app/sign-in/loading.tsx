@@ -1,15 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { AuthSkeleton } from "@/components/shared/auth-skeleton";
 
 export default function SignInLoading() {
-  return (
-    <div
-      className="container mx-auto max-w-md px-4 py-16"
-      aria-busy="true"
-      aria-live="polite"
-    >
-      <Skeleton className="mx-auto h-8 w-40" />
-      <Skeleton className="mx-auto mt-3 h-4 w-60" />
-      <Skeleton className="mt-8 h-72 w-full" />
-    </div>
-  );
+  return <AuthSkeleton variant="sign-in" fieldCount={2} />;
 }

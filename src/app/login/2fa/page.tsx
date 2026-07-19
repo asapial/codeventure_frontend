@@ -10,13 +10,17 @@ export const metadata: Metadata = { title: "Two-factor verification", descriptio
 export default async function TwoFactorPage({ searchParams }: { searchParams: Promise<{ challenge?: string; method?: string; from?: string }> }) {
   const session = await getSession();
   const sp = await searchParams;
-  if (session) redirect(sp.from && sp.from.startsWith("/") ? sp.from : "/account");
+  if (session) redirect(sp.from && sp.from.startsWith("/") ? sp.from : "/dashboard");
   if (!sp.challenge || sp.challenge.length < 20) redirect("/sign-in?reason=challenge_missing");
   const method = sp.method === "recovery-code" ? "recovery-code" : "email-otp";
   return (
-    <AuthShell eyebrow="Security check" title="Confirm it’s you" description={method === "recovery-code" ? "Enter one of the recovery codes saved when you enabled two-factor authentication." : "Enter the six-digit code we sent to your email to finish signing in."}
+    <AuthShell
+      variant="two-factor"
+      eyebrow="Security check"
+      title="Confirm it’s you"
+      description={method === "recovery-code" ? "Enter one of the recovery codes saved when you enabled two-factor authentication." : "Enter the six-digit code we sent to your email to finish signing in."}
       after={<><span>Lost access? </span><Link href="/sign-in" className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">Sign in another way</Link></>}>
-      <TwoFactorForm challengeToken={sp.challenge} method={method} redirectTo={sp.from ?? "/account"} />
+      <TwoFactorForm challengeToken={sp.challenge} method={method} redirectTo={sp.from ?? "/dashboard"} />
     </AuthShell>
   );
 }

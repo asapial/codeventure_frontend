@@ -48,7 +48,7 @@ export async function apiFetch<T>(
     ...opts.headers,
   };
 
-  if (opts.forwardCookies) {
+  if (opts.forwardCookies && typeof window === "undefined") {
     const { cookies } = await import("next/headers");
     const jar = await cookies();
     const cookieHeader = jar
@@ -58,6 +58,11 @@ export async function apiFetch<T>(
     if (cookieHeader) headers.Cookie = cookieHeader;
   }
 
+  // Cross-origin (localhost:3000 → localhost:5000) requires
+  // `credentials: "include"` so the browser accepts `Set-Cookie` from the
+  // backend. Without this the auth flow silently breaks: login/register
+  // return 200 but the session cookies are dropped, so the next request
+  // reports "no session" and the user is bounced back to /sign-in.
   let res: Response;
   try {
     res = await fetch(url, {
@@ -65,6 +70,7 @@ export async function apiFetch<T>(
       headers,
       body: opts.body ? JSON.stringify(opts.body) : undefined,
       signal: opts.signal,
+      credentials: "include",
       ...(opts.next ? { next: opts.next } : {}),
     });
   } catch (err) {
@@ -92,8 +98,18 @@ export async function apiFetch<T>(
     return { ok: false, status: res.status, error: errorBody, raw: payload };
   }
 
+  const data =
+    isJson &&
+    payload !== null &&
+    typeof payload === "object" &&
+    "success" in payload &&
+    (payload as { success?: unknown }).success === true &&
+    "data" in payload
+      ? (payload as { data: unknown }).data
+      : payload;
+
   if (opts.schema) {
-    const parsed = opts.schema.safeParse(payload);
+    const parsed = opts.schema.safeParse(data);
     if (!parsed.success) {
       return {
         ok: false,
@@ -105,13 +121,13 @@ export async function apiFetch<T>(
             requestId: res.headers.get("x-request-id") ?? undefined,
           },
         },
-        raw: payload,
+        raw: data,
       };
     }
     return { ok: true, status: res.status, data: parsed.data };
   }
 
-  return { ok: true, status: res.status, data: payload as T };
+  return { ok: true, status: res.status, data: data as T };
 }
 
 export class ApiTransportError extends Error {

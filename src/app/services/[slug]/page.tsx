@@ -117,7 +117,7 @@ function SectionHeading({
   return (
     <div className="max-w-2xl">
       {eyebrow ? (
-        <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
+        <p className="inline-flex  items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
           {eyebrow}
         </p>
       ) : null}
@@ -200,8 +200,8 @@ export default async function ServiceDetailPage({
             </ol>
           </nav>
 
-          <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-7">
+          <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:items-stretch">
+            <div className="flex flex-col justify-between gap-6 lg:col-span-7">
               <div className="inline-flex items-center gap-3 rounded-full border border-blue-100 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 backdrop-blur dark:border-blue-950 dark:bg-blue-950/30 dark:text-blue-300">
                 <Icon iconKey={svc.iconKey} className="size-3.5" aria-hidden="true" />
                 <span>{CATEGORY_LABELS[category]}</span>
@@ -327,7 +327,7 @@ export default async function ServiceDetailPage({
         className="border-b border-blue-100/70 dark:border-blue-950/70"
       >
         <PageContainer size="5xl" className="py-14 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-12">
+          <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
             <div className="lg:col-span-4">
               <SectionHeading
                 id="overview-heading"
@@ -539,7 +539,7 @@ export default async function ServiceDetailPage({
           aria-labelledby="faqs-heading"
           className="border-b border-blue-100/70 dark:border-blue-950/70"
         >
-          <PageContainer size="4xl" className="py-14 sm:py-20">
+          <PageContainer size="5xl" className="py-14 sm:py-20">
             <ScrollReveal>
               <SectionHeading
                 id="faqs-heading"
@@ -636,14 +636,14 @@ export default async function ServiceDetailPage({
         >
           <PageContainer size="5xl" className="py-14 sm:py-20">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-              <ScrollReveal>
+              <ScrollReveal className="flex-1">
                 <SectionHeading
                   id="related-heading"
                   eyebrow="Explore more"
                   title="Other capabilities"
                 />
               </ScrollReveal>
-              <ScrollReveal delay={0.1}>
+              <ScrollReveal delay={0.1} className="shrink-0">
                 <Link
                   href="/services"
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
@@ -699,8 +699,8 @@ export default async function ServiceDetailPage({
           className="absolute inset-0 -z-10 bg-linear-to-br from-blue-700/40 via-transparent to-blue-950/40"
         />
         <PageContainer size="5xl" className="py-16 sm:py-24">
-          <FadeIn trigger="mount" className="grid items-center gap-10 lg:grid-cols-12">
-            <div className="lg:col-span-7">
+          <FadeIn trigger="mount" className="flex flex-col items-start justify-between gap-10 md:flex-row md:items-center">
+            <div className="max-w-2xl">
               <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-300">
                 <Sparkles className="size-3.5" aria-hidden="true" />
                 Ready when you are
@@ -714,7 +714,7 @@ export default async function ServiceDetailPage({
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row lg:col-span-5 lg:justify-end">
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
               <Link
                 href={`/request-quote?hint=${hintParam}`}
                 className={cn(

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "./layout/page-container";
 
 interface PageHeroProps {
   eyebrow: string;
@@ -16,7 +17,7 @@ export function PageHero({ eyebrow, title, description, cta, compact = false }: 
     <header className="hero-grid relative isolate overflow-hidden border-b border-blue-100 dark:border-blue-950">
       <div className="absolute inset-0 -z-20 bg-gradient-to-b from-blue-50/90 via-background to-background dark:from-blue-950/35" />
       <div className="absolute -right-28 -top-40 -z-10 size-[34rem] rounded-full bg-blue-500/15 blur-3xl" />
-      <div className={cn("mx-auto max-w-7xl px-4 sm:px-6 lg:px-8", compact ? "py-14 sm:py-18" : "py-16 sm:py-24")}>
+      <PageContainer className={cn(compact ? "py-12 sm:py-16" : "py-14 sm:py-24")}>
         <div className="max-w-3xl">
           <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
             <Sparkles className="size-3.5" aria-hidden="true" /> {eyebrow}
@@ -29,7 +30,7 @@ export function PageHero({ eyebrow, title, description, cta, compact = false }: 
             </Link>
           ) : null}
         </div>
-      </div>
+      </PageContainer>
     </header>
   );
 }

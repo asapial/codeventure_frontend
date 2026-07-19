@@ -13,7 +13,7 @@ export function ProofSection({ outcomes, signals }: { outcomes: Outcome[]; signa
     <section className="border-b bg-background">
       <PageContainer size="5xl" className="py-14 sm:py-20">
         <Stagger
-          className="grid overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/40 shadow-[0_24px_80px_-48px_rgba(30,64,175,.45)] dark:border-blue-950 dark:from-slate-950 dark:to-blue-950/20 lg:grid-cols-3"
+          className="grid overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/40 shadow-[0_24px_80px_-48px_rgba(30,64,175,.45)] dark:border-blue-950 dark:from-slate-950 dark:to-blue-950/20 sm:grid-cols-2 lg:grid-cols-3"
           stagger={0.08}
         >
           {outcomes.map((metric) => (

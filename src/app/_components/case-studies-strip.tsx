@@ -20,8 +20,8 @@ export function CaseStudiesStrip({ studies }: { studies: Study[] }) {
   return (
     <section className="border-b bg-blue-50/45 dark:bg-blue-950/10" id="work">
       <PageContainer size="5xl" className="py-20 sm:py-28">
-        <ScrollReveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div className="max-w-2xl">
+        <ScrollReveal className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+          <div className="max-w-2xl flex-1">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
               Capabilities in action
             </p>

@@ -24,7 +24,7 @@ describe("signIn", () => {
       "/auth/sign-in",
       expect.objectContaining({
         method: "POST",
-        forwardCookies: true,
+        body: expect.objectContaining({ email: "ada@example.com" }),
       }),
     );
   });

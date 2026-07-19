@@ -13,7 +13,7 @@ export function StudioSection() {
     <section className="border-b bg-background">
       <PageContainer
         size="5xl"
-        className="grid gap-14 py-20 sm:py-28 lg:grid-cols-2 lg:items-center lg:gap-20"
+        className="flex flex-col justify-between gap-14 py-20 sm:py-28 lg:flex-row lg:items-center lg:gap-20"
       >
         <ScrollReveal direction="left" className="relative">
           <div className="absolute -inset-8 -z-10 rounded-full bg-blue-500/10 blur-3xl" />

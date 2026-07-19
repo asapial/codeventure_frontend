@@ -13,8 +13,12 @@ export function TestimonialsStrip({ testimonials }: { testimonials: Testimonial[
     <section className="border-b">
       <PageContainer size="5xl" className="py-16 sm:py-20">
         <ScrollReveal>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Client perspective</p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">What clients say</h2>
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Client perspective</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">What clients say</h2>
+            </div>
+          </div>
         </ScrollReveal>
 
         <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.08}>

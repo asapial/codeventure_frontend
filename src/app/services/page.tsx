@@ -64,12 +64,14 @@ export default function ServicesPage() {
           >
             <PageContainer size="5xl" className="py-16 sm:py-20">
               <ScrollReveal>
-                <h2
-                  id={`services-${cat}`}
-                  className="text-2xl font-bold tracking-[-0.03em] sm:text-4xl"
-                >
-                  {CATEGORY_LABELS[cat]}
-                </h2>
+                <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
+                  <h2
+                    id={`services-${cat}`}
+                    className="text-2xl font-bold tracking-[-0.03em] sm:text-4xl"
+                  >
+                    {CATEGORY_LABELS[cat]}
+                  </h2>
+                </div>
               </ScrollReveal>
               <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
                 {items.map((s) => (

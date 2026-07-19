@@ -35,7 +35,7 @@ export function ProcessSection() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(37,99,235,0.3),transparent_38%)]" />
       <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.7)_1px,transparent_1px)] [background-size:64px_64px]" />
       <PageContainer size="5xl" className="relative py-20 sm:py-28">
-        <div className="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
+        <div className="flex flex-col justify-between gap-10 lg:flex-row lg:gap-20">
           <ScrollReveal>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-400">How we work</p>
             <h2 className="mt-4 text-balance text-3xl font-bold tracking-[-0.035em] sm:text-5xl">

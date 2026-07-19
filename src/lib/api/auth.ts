@@ -1,6 +1,5 @@
 import { apiFetch, ApiTransportError } from "./client";
 import {
-  authSuccessSchema,
   passwordResetRequestSchema,
   resetPasswordSchema,
   signInSchema,
@@ -28,8 +27,6 @@ export async function signIn(input: SignInInput): Promise<void> {
   const result = await apiFetch("/auth/sign-in", {
     method: "POST",
     body: parsed,
-    schema: authSuccessSchema.optional(),
-    forwardCookies: true,
   });
   if (!result.ok) {
     throw new ApiError(result.status, result.error.error);
@@ -41,8 +38,6 @@ export async function signUp(input: SignUpInput): Promise<void> {
   const result = await apiFetch("/auth/sign-up", {
     method: "POST",
     body: parsed,
-    schema: authSuccessSchema.optional(),
-    forwardCookies: true,
   });
   if (!result.ok) {
     throw new ApiError(result.status, result.error.error);
@@ -52,8 +47,6 @@ export async function signUp(input: SignUpInput): Promise<void> {
 export async function signOut(): Promise<void> {
   const result = await apiFetch("/auth/sign-out", {
     method: "POST",
-    schema: authSuccessSchema.optional(),
-    forwardCookies: true,
   });
   if (!result.ok) {
     throw new ApiError(result.status, result.error.error);
@@ -80,7 +73,6 @@ export async function resetPassword(input: ResetPasswordInput): Promise<void> {
   const result = await apiFetch("/auth/reset-password", {
     method: "POST",
     body: parsed,
-    schema: authSuccessSchema.optional(),
   });
   if (!result.ok) {
     throw new ApiError(result.status, result.error.error);

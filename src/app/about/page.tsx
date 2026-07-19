@@ -33,11 +33,13 @@ export default function AboutPage() {
 
       {about.mission ? (
         <section className="border-b">
-          <PageContainer size="4xl" className="py-16 sm:py-20">
+          <PageContainer size="5xl" className="py-16 sm:py-20">
             <FadeIn trigger="mount">
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Our mission
-              </h2>
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Our mission
+                </h2>
+              </div>
               <p className="mt-4 whitespace-pre-line text-muted-foreground">
                 {about.mission}
               </p>
@@ -50,9 +52,11 @@ export default function AboutPage() {
         <section className="border-b">
           <PageContainer size="5xl" className="py-12">
             <ScrollReveal>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                What we value
-              </h2>
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  What we value
+                </h2>
+              </div>
             </ScrollReveal>
             <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
               {about.values.map((v) => (
@@ -73,11 +77,13 @@ export default function AboutPage() {
 
       {about.milestones.length > 0 ? (
         <section className="border-b">
-          <PageContainer size="4xl" className="py-12">
+          <PageContainer size="5xl" className="py-12">
             <ScrollReveal>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Our journey
-              </h2>
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Our journey
+                </h2>
+              </div>
             </ScrollReveal>
             <Stagger className="mt-8 space-y-6" stagger={0.06}>
               {about.milestones.map((m) => (
@@ -104,9 +110,11 @@ export default function AboutPage() {
         <section className="border-b">
           <PageContainer size="5xl" className="py-12">
             <ScrollReveal>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                The team
-              </h2>
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  The team
+                </h2>
+              </div>
             </ScrollReveal>
             <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
               {about.team.map((member) => (
@@ -144,11 +152,13 @@ export default function AboutPage() {
 
       {about.certifications.length > 0 ? (
         <section className="border-b">
-          <PageContainer size="4xl" className="py-12">
+          <PageContainer size="5xl" className="py-12">
             <ScrollReveal>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Certifications
-              </h2>
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+                <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Certifications
+                </h2>
+              </div>
             </ScrollReveal>
             <Stagger className="mt-6 divide-y divide-border rounded-lg border border-border" stagger={0.05}>
               {about.certifications.map((c) => (
@@ -183,20 +193,22 @@ export default function AboutPage() {
       <Separator />
 
       <section className="bg-foreground text-background">
-        <PageContainer size="4xl" className="py-16 text-center">
-          <FadeIn trigger="mount">
-            <h2 className="text-2xl font-semibold sm:text-3xl">
-              Let&rsquo;s work together
-            </h2>
-            <p className="mt-3 text-background/80">
-              Tell us about your project and we will reply within two business
-              days.
-            </p>
+        <PageContainer size="5xl" className="py-16">
+          <FadeIn trigger="mount" className="flex flex-col items-start justify-between gap-6 text-center sm:flex-row sm:items-center sm:text-left">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-semibold sm:text-3xl">
+                Let&rsquo;s work together
+              </h2>
+              <p className="mt-3 text-background/80">
+                Tell us about your project and we will reply within two business
+                days.
+              </p>
+            </div>
             <Link
               href="/request-quote"
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "mt-6 bg-background text-foreground hover:bg-background/90",
+                "shrink-0 bg-background text-foreground hover:bg-background/90",
               )}
             >
               Request a quote
