@@ -70,7 +70,7 @@ describe("register", () => {
 });
 
 describe("acceptInvitation", () => {
-  it("POSTs to /auth/invitations/accept with the invite token", async () => {
+  it("POSTs to /auth/invitations/accept with the invite token + names", async () => {
     mockedApiFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
@@ -78,17 +78,19 @@ describe("acceptInvitation", () => {
     });
 
     await acceptInvitation({
-      inviteToken: "abcdefghijklmnopqrstuvwxyz",
+      token: "abcdefghijklmnopqrstuvwxyz",
+      firstName: "Grace",
+      lastName: "Hopper",
       password: "Sup3rSecret!",
-      fullName: "Grace Hopper",
       acceptTerms: true,
-      acceptPrivacy: true,
     });
 
     expect(mockedApiFetch).toHaveBeenCalledWith("/auth/invitations/accept", {
       method: "POST",
       body: expect.objectContaining({
-        inviteToken: "abcdefghijklmnopqrstuvwxyz",
+        token: "abcdefghijklmnopqrstuvwxyz",
+        firstName: "Grace",
+        lastName: "Hopper",
         password: "Sup3rSecret!",
       }),
       schema: undefined,

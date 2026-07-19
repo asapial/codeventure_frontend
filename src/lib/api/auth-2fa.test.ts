@@ -52,22 +52,25 @@ describe("verifyTwoFactor", () => {
       },
     });
 
-    await expect(
-      verifyTwoFactor({
+    let caught: unknown;
+    try {
+      await verifyTwoFactor({
         challengeToken: "abcdefghijklmnopqrstuvwxyz",
         code: "000000",
-      }),
-    ).rejects.toMatchObject({
-      name: "ApiError",
+      });
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).toBeDefined();
+    expect(caught).toBeInstanceOf(ApiError);
+    expect(caught).toMatchObject({
       status: 400,
       message: "That code didn't work",
     });
-    await expect(
-      verifyTwoFactor({
-        challengeToken: "abcdefghijklmnopqrstuvwxyz",
-        code: "000000",
-      }),
-    ).rejects.toBeInstanceOf(ApiError);
+    expect((caught as { body: { code: string } }).body.code).toBe(
+      "INVALID_CHALLENGE_TOKEN",
+    );
   });
 });
 

@@ -15,7 +15,7 @@ vi.mock("@/lib/api/auth", () => ({
   fetchSession: vi.fn(async () =>
     cookieStore.get("cv_session")
       ? {
-          user: { id: "u1", email: "[email protected]", name: "Ada" },
+          user: { id: "u1", email: "ada@example.com", name: "Ada" },
           expiresAt: "2026-01-01T00:00:00Z",
         }
       : null,
