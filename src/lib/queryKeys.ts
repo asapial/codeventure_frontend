@@ -37,3 +37,20 @@ export const quoteKeys = {
   services: () => [...quoteKeys.all, "services"] as const,
   draft: (id: string) => [...quoteKeys.all, "draft", id] as const,
 };
+
+export const authKeys = {
+  all: ["auth"] as const,
+  session: () => [...authKeys.all, "session"] as const,
+};
+
+export const accountKeys = {
+  all: ["account"] as const,
+  summary: () => [...accountKeys.all, "summary"] as const,
+};
+
+export const projectKeys = {
+  all: ["projects"] as const,
+  list: (q: { status?: string; search?: string }) =>
+    [...projectKeys.all, "list", q] as const,
+  detail: (slug: string) => [...projectKeys.all, "detail", slug] as const,
+};

@@ -1,26 +1,21 @@
-"use client";
+import { ReactNode } from "react";
+import { getSession } from "@/lib/auth/session";
+import { ClientProviders } from "./client-providers";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactNode, useState } from "react";
-import { Toaster } from "@/components/ui/sonner";
-
-export function Providers({ children }: { children: ReactNode }) {
-  const [client] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 30_000,
-            refetchOnWindowFocus: false,
-            retry: 1,
-          },
-        },
-      }),
-  );
+/**
+ * Server wrapper around `ClientProviders` — pulls the current session on
+ * every request so the Client cache is pre-populated (avoids a 401 flash).
+ */
+export async function Providers({ children }: { children: ReactNode }) {
+  const session = await getSession();
   return (
-    <QueryClientProvider client={client}>
+    <ClientProviders
+      initialAuth={{
+        user: session?.user ?? null,
+        expiresAt: session?.expiresAt ?? null,
+      }}
+    >
       {children}
-      <Toaster />
-    </QueryClientProvider>
+    </ClientProviders>
   );
 }
