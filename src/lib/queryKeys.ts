@@ -27,6 +27,11 @@ export const serviceKeys = {
   detail: (slug: string) => [...serviceKeys.all, "detail", slug] as const,
 };
 
+export const contactKeys = {
+  all: ["public:contact"] as const,
+  details: () => ["public:contact", "details"] as const,
+};
+
 export const quoteKeys = {
   all: ["quotes"] as const,
   services: () => [...quoteKeys.all, "services"] as const,
