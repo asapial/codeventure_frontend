@@ -119,3 +119,191 @@ export function scorePassword(pw: string): PasswordStrength {
   if (pw.length >= 10 && classes >= 2) return "ok";
   return "weak";
 }
+
+/* ============================================================================
+ * P16 — Two-factor verification
+ * ============================================================================
+ */
+
+/** Method codes for the 2FA challenge. Mirrors backend `WireTwoFactorMethod`. */
+export const twoFactorMethodSchema = z.enum(["totp", "email-otp", "recovery-code"]);
+export type TwoFactorMethod = z.infer<typeof twoFactorMethodSchema>;
+
+/** POST /auth/2fa/verify */
+export const twoFactorVerifySchema = z
+  .object({
+    challengeToken: z
+      .string()
+      .min(20, "Challenge token is missing or malformed.")
+      .max(256, "Challenge token is too long."),
+    code: z
+      .string()
+      .regex(/^\d{6}$/, "Code must be 6 digits.")
+      .optional()
+      .or(z.literal("")),
+    recoveryCode: z
+      .string()
+      .regex(
+        /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i,
+        "Recovery code must look like XXXX-XXXX-XXXX-XXXX.",
+      )
+      .optional()
+      .or(z.literal("")),
+    trustDevice: z.boolean().default(false),
+  })
+  .refine(
+    (v) => {
+      const hasCode = Boolean(v.code && v.code.length > 0);
+      const hasRecovery = Boolean(v.recoveryCode && v.recoveryCode.length > 0);
+      return hasCode !== hasRecovery;
+    },
+    {
+      message: "Provide either a 6-digit code OR a recovery code, not both.",
+      path: ["code"],
+    },
+  );
+export type TwoFactorVerifyInput = z.infer<typeof twoFactorVerifySchema>;
+
+/** POST /auth/2fa/resend */
+export const twoFactorResendSchema = z.object({
+  challengeToken: z
+    .string()
+    .min(20, "Challenge token is missing or malformed.")
+    .max(256, "Challenge token is too long."),
+});
+export type TwoFactorResendInput = z.infer<typeof twoFactorResendSchema>;
+
+/* ============================================================================
+ * P17 — Customer registration
+ * ============================================================================
+ */
+
+export const signupSourceSchema = z.enum([
+  "direct",
+  "organic-search",
+  "paid-ad",
+  "social",
+  "referral",
+  "email-campaign",
+  "other",
+]);
+export type SignupSource = z.infer<typeof signupSourceSchema>;
+
+export const accountRoleSchema = z.enum(["owner", "admin", "editor", "viewer"]);
+
+/** Shared password rule for register + accept-invitation. */
+const registerPasswordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters.")
+  .max(128, "Password is too long.")
+  .refine(
+    (p) => /[a-z]/.test(p) && /[A-Z0-9]/.test(p),
+    "Password must include a lowercase letter and either an uppercase letter or a digit.",
+  );
+
+/** POST /auth/register */
+export const registerSchema = z
+  .object({
+    email: emailSchema,
+    password: registerPasswordSchema,
+    firstName: z
+      .string()
+      .min(1, "First name is required.")
+      .max(60, "First name is too long."),
+    lastName: z
+      .string()
+      .min(1, "Last name is required.")
+      .max(60, "Last name is too long."),
+    signupSource: signupSourceSchema.optional(),
+    referralCode: z
+      .string()
+      .min(3, "Referral code looks too short.")
+      .max(40)
+      .regex(/^[A-Z0-9_-]+$/i, "Referral code must be alphanumeric.")
+      .optional()
+      .or(z.literal("")),
+    inviteToken: z.string().min(20).max(256).optional().or(z.literal("")),
+    acceptTerms: z.literal(true, {
+      error: "You must accept the terms to register.",
+    }),
+    acceptPrivacy: z.literal(true, {
+      error: "You must accept the privacy policy to register.",
+    }),
+    marketingOptIn: z.boolean().default(false),
+    // Honeypot — bots fill it, humans don't.
+    website: z.string().max(0).optional().or(z.literal("")),
+  });
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+/** POST /auth/invitations/accept */
+export const acceptInvitationSchema = z.object({
+  token: z.string().min(20, "Invitation token is missing or malformed.").max(256),
+  firstName: z.string().min(1).max(60),
+  lastName: z.string().min(1).max(60),
+  password: registerPasswordSchema,
+  acceptTerms: z.literal(true, {
+    error: "You must accept the terms to continue.",
+  }),
+  website: z.string().max(0).optional().or(z.literal("")),
+});
+export type AcceptInvitationInput = z.infer<typeof acceptInvitationSchema>;
+
+export const registerResponseSchema = z.object({
+  userId: z.string(),
+  email: z.string().email(),
+  requiresEmailVerification: z.boolean(),
+});
+export type RegisterResponse = z.infer<typeof registerResponseSchema>;
+
+/* ============================================================================
+ * P18 — Email verification
+ * ============================================================================
+ */
+
+/** POST /auth/verify-email — accepts either a 6-digit code or a magic-link token. */
+export const verifyEmailSchema = z
+  .object({
+    email: emailSchema,
+    code: z
+      .string()
+      .regex(/^\d{6}$/, "Code must be 6 digits.")
+      .optional()
+      .or(z.literal("")),
+    token: z.string().min(20).max(256).optional().or(z.literal("")),
+  })
+  .refine(
+    (v) => {
+      const hasCode = Boolean(v.code && v.code.length > 0);
+      const hasToken = Boolean(v.token && v.token.length > 0);
+      return hasCode !== hasToken;
+    },
+    {
+      message: "Provide either a 6-digit code OR a magic-link token.",
+      path: ["code"],
+    },
+  );
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+
+/** POST /auth/verify-email/resend */
+export const resendVerificationSchema = z.object({
+  email: emailSchema,
+});
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+
+/* ============================================================================
+ * Response envelopes
+ * ============================================================================
+ */
+
+export const twoFactorVerifyResponseSchema = z.object({
+  expiresAt: z.string().datetime(),
+  trustedDevice: z.boolean(),
+});
+export type TwoFactorVerifyResponse = z.infer<typeof twoFactorVerifyResponseSchema>;
+
+export const twoFactorChallengeInfoSchema = z.object({
+  challengeToken: z.string().min(20),
+  method: twoFactorMethodSchema,
+  expiresInSeconds: z.number().int().positive(),
+});
+export type TwoFactorChallengeInfo = z.infer<typeof twoFactorChallengeInfoSchema>;

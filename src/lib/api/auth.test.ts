@@ -18,7 +18,7 @@ describe("signIn", () => {
     });
 
     await expect(
-      signIn({ email: "[email protected]", password: "Sup3rSecret!" }),
+      signIn({ email: "ada@example.com", password: "Sup3rSecret!" }),
     ).resolves.toBeUndefined();
     expect(apiFetch).toHaveBeenCalledWith(
       "/auth/sign-in",
@@ -39,7 +39,7 @@ describe("signIn", () => {
     });
 
     await expect(
-      signIn({ email: "[email protected]", password: "Sup3rSecret!" }),
+      signIn({ email: "ada@example.com", password: "Sup3rSecret!" }),
     ).rejects.toBeInstanceOf(ApiError);
   });
 });
@@ -73,7 +73,7 @@ describe("requestPasswordReset", () => {
     });
 
     await expect(
-      requestPasswordReset({ email: "[email protected]" }),
+      requestPasswordReset({ email: "ada@example.com" }),
     ).resolves.toEqual({ reference: "req_abc123" });
   });
 });
