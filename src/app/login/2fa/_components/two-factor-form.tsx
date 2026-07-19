@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ export function TwoFactorForm({ challengeToken, method, redirectTo }: Props) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<TwoFactorVerifyInput>({
+  } = useForm<z.input<typeof twoFactorVerifySchema>, unknown, z.output<typeof twoFactorVerifySchema>>({
     resolver: zodResolver(twoFactorVerifySchema),
     defaultValues: {
       challengeToken,

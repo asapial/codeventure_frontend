@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,7 @@ export function SignInForm({ redirectTo }: Props) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignInInput>({
+  } = useForm<z.input<typeof signInSchema>, unknown, z.output<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",

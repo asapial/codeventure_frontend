@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +49,7 @@ export function SignUpForm() {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<SignUpInput>({
+  } = useForm<z.input<typeof signUpSchema>, unknown, z.output<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: "",

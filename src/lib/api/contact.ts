@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiFetch } from "./client";
+import { apiFetch, type ApiResult } from "./client";
 import {
   contactDetailsSchema,
   contactMessageSchema,
@@ -10,13 +10,11 @@ import {
 } from "@/types/contact";
 
 /** GET /public/contact — about-page-ready details (offices, social links). */
-export async function fetchContactDetails(): Promise<ContactDetails> {
-  const result = await apiFetch("/public/contact", {
+export async function fetchContactDetails(): Promise<ApiResult<ContactDetails>> {
+  return apiFetch("/public/contact", {
     schema: contactDetailsSchema,
     next: { revalidate: 3600, tags: ["public:contact"] },
   });
-  if (!result.ok) throw new Error(result.error.error.message);
-  return result.data;
 }
 
 /**

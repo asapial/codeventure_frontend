@@ -23,6 +23,7 @@ export const caseStudySummarySchema = z.object({
   summary: z.string().nullable().optional(),
   thumbnailUrl: z.string().url().nullable().optional(),
   industry: z.string().nullable().optional(),
+  outcome: z.string().nullable().optional(),
 });
 export type CaseStudySummary = z.infer<typeof caseStudySummarySchema>;
 

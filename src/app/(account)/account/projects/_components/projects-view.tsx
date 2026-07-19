@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { ApiResult } from "@/lib/api/client";
 import type { ProjectIndex, ProjectStatus } from "@/types/project";
 
 interface ProjectsQuery {
@@ -17,7 +16,7 @@ interface ProjectsQuery {
 }
 
 interface Props {
-  initialResult: ApiResult<ProjectIndex>;
+  initialResult: ProjectIndex;
   query: ProjectsQuery;
 }
 
@@ -47,17 +46,7 @@ export function ProjectsView({ initialResult, query }: Props) {
 
   const activeStatus = query.status ?? "all";
 
-  if (!initialResult.ok) {
-    return (
-      <EmptyState
-        title="Couldn’t load projects"
-        description={initialResult.error.error.message}
-        action={{ label: "Retry", href: "/account/projects" }}
-      />
-    );
-  }
-
-  const { projects } = initialResult.data;
+  const { projects } = initialResult;
 
   function applySearch(value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -72,7 +61,7 @@ export function ProjectsView({ initialResult, query }: Props) {
     <div className="space-y-6">
       <form
         role="search"
-        className="flex gap-2"
+        className="flex gap-2 rounded-2xl border border-blue-100 bg-card p-3 shadow-sm dark:border-blue-950"
         onSubmit={(e) => {
           e.preventDefault();
           applySearch(search);
@@ -109,10 +98,10 @@ export function ProjectsView({ initialResult, query }: Props) {
               role="tab"
               aria-selected={isActive}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs",
+                "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all",
                 isActive
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground",
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                  : "border-blue-100 bg-card text-muted-foreground hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-950 dark:hover:bg-blue-950/40",
               )}
             >
               {s.label}
@@ -141,7 +130,7 @@ export function ProjectsView({ initialResult, query }: Props) {
             <li key={project.id}>
               <Link
                 href={`/account/projects/${project.slug}`}
-                className="flex h-full flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
+                className="group flex h-full flex-col gap-3 rounded-2xl border border-blue-100 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:border-blue-950 dark:hover:border-blue-800"
               >
                 <div className="flex items-center justify-between">
                   <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">
@@ -164,14 +153,14 @@ export function ProjectsView({ initialResult, query }: Props) {
                 ) : null}
                 {typeof project.progress === "number" ? (
                   <div
-                    className="h-1 w-full rounded-full bg-muted"
+                    className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
                     role="progressbar"
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={Math.round(project.progress * 100)}
                   >
                     <div
-                      className="h-full rounded-full bg-primary"
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-400"
                       style={{ width: `${Math.round(project.progress * 100)}%` }}
                     />
                   </div>

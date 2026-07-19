@@ -18,7 +18,7 @@ describe("signIn", () => {
     });
 
     await expect(
-      signIn({ email: "ada@example.com", password: "Sup3rSecret!" }),
+      signIn({ email: "ada@example.com", password: "Sup3rSecret!", rememberMe: false }),
     ).resolves.toBeUndefined();
     expect(apiFetch).toHaveBeenCalledWith(
       "/auth/sign-in",
@@ -39,7 +39,7 @@ describe("signIn", () => {
     });
 
     await expect(
-      signIn({ email: "ada@example.com", password: "Sup3rSecret!" }),
+      signIn({ email: "ada@example.com", password: "Sup3rSecret!", rememberMe: false }),
     ).rejects.toBeInstanceOf(ApiError);
   });
 });

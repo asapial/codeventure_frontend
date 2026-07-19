@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,7 @@ export function RegistrationForm({ inviteToken }: Props) {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<RegisterInput>({
+  } = useForm<z.input<typeof registerSchema>, unknown, z.output<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",

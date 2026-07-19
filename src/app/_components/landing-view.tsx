@@ -1,13 +1,12 @@
-import type { z } from "zod";
-import type { homePageSchema } from "@/types/home";
+import type { HomePage } from "@/types/home";
 import { LandingHero } from "./landing-hero";
 import { ProofSection } from "./proof-section";
 import { ServicesStrip } from "./services-strip";
 import { CaseStudiesStrip } from "./case-studies-strip";
 import { TestimonialsStrip } from "./testimonials-strip";
 import { ConversionBand } from "./conversion-band";
-
-type HomePage = z.infer<typeof homePageSchema>;
+import { ProcessSection } from "./process-section";
+import { StudioSection } from "./studio-section";
 
 export function LandingView({ data }: { data: HomePage }) {
   return (
@@ -15,21 +14,23 @@ export function LandingView({ data }: { data: HomePage }) {
       <LandingHero
         headline={data.heroHeadline}
         subheadline={data.heroSubheadline}
-        primaryCta={data.primaryCta}
-        secondaryCta={data.secondaryCta}
+        primaryCta={{ label: data.primaryCta.label, href: data.primaryCta.url }}
+        secondaryCta={{ label: data.secondaryCta.label, href: data.secondaryCta.url }}
       />
       <ProofSection
         outcomes={data.outcomeMetrics}
         signals={data.trustSignals}
       />
       <ServicesStrip services={data.featuredServices} />
-      <CaseStudiesStrip studies={data.featuredCaseStudies} />
-      <TestimonialsStrip testimonials={data.featuredTestimonials} />
+      <ProcessSection />
+      <CaseStudiesStrip studies={data.featuredCases} />
+      <TestimonialsStrip testimonials={data.testimonials} />
+      <StudioSection />
       <ConversionBand
-        headline={data.conversionBand.headline}
-        subheadline={data.conversionBand.subheadline}
-        ctaLabel={data.conversionBand.ctaLabel}
-        ctaHref={data.conversionBand.ctaHref}
+        headline="Ready to build something better?"
+        subheadline="Tell us what you are working on and we will help you find the clearest next step."
+        ctaLabel="Start a conversation"
+        ctaHref="/request-quote"
       />
     </>
   );

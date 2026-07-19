@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { fetchCaseStudyDetail, fetchPortfolio } from "@/lib/api/portfolio";
+import {
+  caseStudiesBySlug,
+  portfolioList,
+} from "@/content/portfolio";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CaseStudyFallback } from "./_components/case-study-fallback";
 
 type Params = { slug: string };
 
-export async function generateStaticParams(): Promise<Params[]> {
-  const result = await fetchPortfolio();
-  if (!result.ok) return [];
-  return result.data.cases.map((c) => ({ slug: c.slug }));
+export function generateStaticParams(): Params[] {
+  return portfolioList.cases.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({
@@ -24,11 +24,10 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const result = await fetchCaseStudyDetail(slug);
-  if (!result.ok) {
+  const cs = caseStudiesBySlug[slug];
+  if (!cs) {
     return { title: "Case study not found", robots: { index: false, follow: false } };
   }
-  const cs = result.data;
   return {
     title: `${cs.title} — Case study`,
     description: cs.summary ?? cs.problem.slice(0, 160),
@@ -49,19 +48,9 @@ export default async function CaseStudyPage({
   params: Promise<Params>;
 }) {
   const { slug } = await params;
-  const result = await fetchCaseStudyDetail(slug);
+  const cs = caseStudiesBySlug[slug];
 
-  if (result.status === 404) notFound();
-  if (!result.ok) {
-    return (
-      <CaseStudyFallback
-        status={result.status}
-        message={result.error.error.message}
-      />
-    );
-  }
-
-  const cs = result.data;
+  if (!cs) notFound();
 
   return (
     <article>

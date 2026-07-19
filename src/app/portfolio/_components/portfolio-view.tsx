@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { CaseStudySummary } from "@/types/portfolio";
+import { PageHero } from "@/components/shared/page-hero";
 
 interface Props {
   cases: CaseStudySummary[];
@@ -54,20 +55,10 @@ export function PortfolioView({
 
   return (
     <>
-      <header className="border-b bg-gradient-to-b from-background to-muted/40">
-        <div className="container mx-auto max-w-6xl px-4 py-16 sm:py-20">
-          <p className="text-sm font-medium text-muted-foreground">Portfolio</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Selected work
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Recent engagements and the outcomes they delivered for our clients.
-          </p>
-        </div>
-      </header>
+      <PageHero eyebrow="Selected work" title="Products designed to make a difference" description="Explore how thoughtful strategy, polished experience design, and robust engineering come together." />
 
-      <section className="border-b">
-        <div className="container mx-auto max-w-6xl px-4 py-8">
+      <section className="border-b border-blue-100 bg-blue-50/40 dark:border-blue-950 dark:bg-blue-950/10">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <form
             role="search"
             aria-label="Filter case studies"
@@ -100,7 +91,7 @@ export function PortfolioView({
                   setIndustry(e.target.value);
                   syncUrl({ industry: e.target.value });
                 }}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                className="flex h-11 w-full rounded-xl border border-blue-100 bg-background/80 px-3.5 text-sm shadow-sm outline-none transition-all hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10 dark:border-blue-950"
               >
                 <option value="">All industries</option>
                 {industries.map((i) => (
@@ -121,7 +112,7 @@ export function PortfolioView({
                   setService(e.target.value);
                   syncUrl({ service: e.target.value });
                 }}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                className="flex h-11 w-full rounded-xl border border-blue-100 bg-background/80 px-3.5 text-sm shadow-sm outline-none transition-all hover:border-blue-200 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10 dark:border-blue-950"
               >
                 <option value="">All services</option>
                 {services.map((s) => (
@@ -139,7 +130,7 @@ export function PortfolioView({
       </section>
 
       <section className="border-b">
-        <div className="container mx-auto max-w-6xl px-4 py-12">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           {filtered.length === 0 ? (
             <EmptyState
               title="No matching case studies"
@@ -150,7 +141,7 @@ export function PortfolioView({
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((c) => (
                 <li key={c.slug}>
-                  <Card className="h-full">
+                  <Card className="group h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:hover:border-blue-800">
                     {c.thumbnailUrl ? (
                       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-lg">
                         <Image
@@ -158,7 +149,7 @@ export function PortfolioView({
                           alt={c.thumbnailAlt ?? c.title}
                           fill
                           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                          className="object-cover"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
                     ) : null}
@@ -178,7 +169,7 @@ export function PortfolioView({
                       ) : null}
                       <Link
                         href={`/portfolio/${c.slug}`}
-                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                        className="text-sm font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
                       >
                         Read case study →
                       </Link>

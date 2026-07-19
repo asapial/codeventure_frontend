@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { fetchQuoteServices } from "@/lib/api/quote";
+import { quoteServices } from "@/content/quote-services";
 import { RequestQuoteView } from "./_components/request-quote-view";
-import { RequestQuoteFallback } from "./_components/request-quote-fallback";
 
 export const metadata: Metadata = {
   title: "Request a quote",
@@ -26,24 +25,12 @@ interface PageProps {
 }
 
 export default async function RequestQuotePage({ searchParams }: PageProps) {
-  const [{ email, hint }, servicesResult] = await Promise.all([
-    searchParams,
-    fetchQuoteServices(),
-  ]);
+  const { email, hint } = await searchParams;
 
   return (
-    <>
-      {servicesResult.ok ? (
-        <RequestQuoteView
-          services={servicesResult.data.services}
-          prefill={{ email: email ?? "", hint: hint ?? "" }}
-        />
-      ) : (
-        <RequestQuoteFallback
-          status={servicesResult.status}
-          message={servicesResult.error.error.message}
-        />
-      )}
-    </>
+    <RequestQuoteView
+      services={quoteServices.services}
+      prefill={{ email: email ?? "", hint: hint ?? "" }}
+    />
   );
 }

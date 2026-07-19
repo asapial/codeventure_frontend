@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchServices } from "@/lib/api/services";
+import { servicesList } from "@/content/services";
 import {
   CATEGORY_LABELS,
   type ServiceCategory,
   type ServiceSummary,
 } from "@/types/service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ServicesFallback } from "./_components/services-fallback";
+import { PageHero } from "@/components/shared/page-hero";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -27,19 +25,8 @@ export const metadata: Metadata = {
 
 const CATEGORY_ORDER: ServiceCategory[] = ["design", "build", "operate"];
 
-export default async function ServicesPage() {
-  const result = await fetchServices();
-
-  if (!result.ok) {
-    return (
-      <ServicesFallback
-        status={result.status}
-        message={result.error.error.message}
-      />
-    );
-  }
-
-  const grouped = result.data.services.reduce<Record<ServiceCategory, ServiceSummary[]>>(
+export default function ServicesPage() {
+  const grouped = servicesList.services.reduce<Record<ServiceCategory, ServiceSummary[]>>(
     (acc, svc) => {
       (acc[svc.category] ??= []).push(svc);
       return acc;
@@ -47,7 +34,7 @@ export default async function ServicesPage() {
     { design: [], build: [], operate: [] },
   );
 
-  if (result.data.services.length === 0) {
+  if (servicesList.services.length === 0) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-24">
         <EmptyState
@@ -61,24 +48,7 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <header className="border-b bg-gradient-to-b from-background to-muted/40">
-        <div className="container mx-auto max-w-6xl px-4 py-16 sm:py-20">
-          <p className="text-sm font-medium text-muted-foreground">Services</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Capabilities that move your business forward
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            Design, build, and operate — pick one capability or combine them as
-            an end-to-end engagement.
-          </p>
-          <Link
-            href="/request-quote"
-            className={cn(buttonVariants({ size: "lg" }), "mt-8")}
-          >
-            Request a quote
-          </Link>
-        </div>
-      </header>
+      <PageHero eyebrow="Services" title="Capabilities that move your business forward" description="Strategy, design, engineering, and growth expertise — combined around the outcome your product needs." cta={{ label: "Start a project", href: "/request-quote" }} />
 
       {CATEGORY_ORDER.map((cat) => {
         const items = grouped[cat];
@@ -87,30 +57,30 @@ export default async function ServicesPage() {
           <section
             key={cat}
             id={cat}
-            className="border-b last:border-b-0"
+            className="border-b border-blue-100/70 last:border-b-0 dark:border-blue-950/70"
             aria-labelledby={`services-${cat}`}
           >
-            <div className="container mx-auto max-w-6xl px-4 py-12 sm:py-16">
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
               <h2
                 id={`services-${cat}`}
-                className="text-2xl font-semibold tracking-tight sm:text-3xl"
+                className="text-2xl font-bold tracking-[-0.03em] sm:text-4xl"
               >
                 {CATEGORY_LABELS[cat]}
               </h2>
               <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((s) => (
-                  <Card key={s.slug}>
+                  <Card key={s.slug} className="group transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:hover:border-blue-800">
                     <CardHeader>
                       <CardTitle className="text-lg">{s.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <p className="text-sm text-muted-foreground">{s.summary}</p>
+                      <p className="text-sm leading-6 text-muted-foreground">{s.summary}</p>
                       {s.startingPriceText ? (
                         <p className="text-sm font-medium">{s.startingPriceText}</p>
                       ) : null}
                       <Link
                         href={`/services/${s.slug}`}
-                        className="inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
+                        className="inline-flex text-sm font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
                       >
                         Learn more →
                       </Link>

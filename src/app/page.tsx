@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { fetchHomePage } from "@/lib/api/home";
 import { LandingView } from "./_components/landing-view";
-import { LandingViewFallback } from "./_components/landing-view-fallback";
+import { homePage } from "@/content/home-page";
 
 export const metadata: Metadata = {
-  title: "Web, eCommerce, and SEO delivery — built for outcomes",
+  title: "Digital products people love",
   description:
-    "CodeVenture designs, develops, and operates websites, eCommerce stores, and SEO programs for growing businesses. Request a quote in minutes.",
+    "CodeVenture is a product engineering studio for ambitious teams that care about craft, speed, and meaningful business outcomes.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "CodeVenture — Web, eCommerce, and SEO delivery",
+    title: "CodeVenture - Digital products people love",
     description:
-      "Design, build, and operate websites, eCommerce, and SEO programs that produce measurable business outcomes.",
+      "Strategy, design, and engineering for ambitious digital products.",
     url: "/",
     type: "website",
   },
@@ -23,7 +22,7 @@ const ORG_JSONLD = {
   name: "CodeVenture",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://codeventure.example",
   description:
-    "CodeVenture designs, builds, and operates websites, eCommerce, and SEO programs.",
+    "CodeVenture designs and engineers premium digital products for ambitious teams.",
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "sales",
@@ -31,25 +30,15 @@ const ORG_JSONLD = {
   },
 };
 
-export default async function HomePage() {
-  const result = await fetchHomePage();
-
+export default function HomePage() {
   return (
     <>
       <script
         type="application/ld+json"
-        // Server-rendered, no user input — safe to dangerouslySetInnerHTML.
+        // Static, trusted content only.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}
       />
-      {result.ok ? (
-        <LandingView data={result.data} />
-      ) : (
-        <LandingViewFallback
-          status={result.status}
-          requestId={result.error.error.requestId}
-          message={result.error.error.message}
-        />
-      )}
+      <LandingView data={homePage} />
     </>
   );
 }

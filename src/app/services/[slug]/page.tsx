@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchServiceDetail, fetchServices } from "@/lib/api/services";
+import {
+  servicesBySlug,
+  servicesList,
+} from "@/content/services";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ServiceDetailFallback } from "./_components/service-detail-fallback";
 
 type Params = { slug: string };
 
-export async function generateStaticParams(): Promise<Params[]> {
-  const result = await fetchServices();
-  if (!result.ok) return [];
-  return result.data.services.map((s) => ({ slug: s.slug }));
+export function generateStaticParams(): Params[] {
+  return servicesList.services.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({
@@ -23,11 +23,10 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const result = await fetchServiceDetail(slug);
-  if (!result.ok) {
+  const svc = servicesBySlug[slug];
+  if (!svc) {
     return { title: "Service not found", robots: { index: false, follow: false } };
   }
-  const svc = result.data;
   return {
     title: `${svc.name} — CodeVenture services`,
     description: svc.summary,
@@ -48,19 +47,9 @@ export default async function ServiceDetailPage({
   params: Promise<Params>;
 }) {
   const { slug } = await params;
-  const result = await fetchServiceDetail(slug);
+  const svc = servicesBySlug[slug];
 
-  if (result.status === 404) notFound();
-  if (!result.ok) {
-    return (
-      <ServiceDetailFallback
-        status={result.status}
-        message={result.error.error.message}
-      />
-    );
-  }
-
-  const svc = result.data;
+  if (!svc) notFound();
 
   return (
     <>

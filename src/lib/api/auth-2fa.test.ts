@@ -57,6 +57,7 @@ describe("verifyTwoFactor", () => {
       await verifyTwoFactor({
         challengeToken: "abcdefghijklmnopqrstuvwxyz",
         code: "000000",
+        trustDevice: false,
       });
     } catch (err) {
       caught = err;

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { fetchPortfolio } from "@/lib/api/portfolio";
+import { portfolioList } from "@/content/portfolio";
 import { PortfolioView } from "./_components/portfolio-view";
-import { PortfolioFallback } from "./_components/portfolio-fallback";
 
 export const metadata: Metadata = {
   title: "Portfolio — Selected work",
@@ -26,22 +25,12 @@ interface PageProps {
 
 export default async function PortfolioPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const result = await fetchPortfolio();
-
-  if (!result.ok) {
-    return (
-      <PortfolioFallback
-        status={result.status}
-        message={result.error.error.message}
-      />
-    );
-  }
 
   return (
     <PortfolioView
-      cases={result.data.cases}
-      industries={result.data.industries}
-      services={result.data.services}
+      cases={portfolioList.cases}
+      industries={portfolioList.industries}
+      services={portfolioList.services}
       initialFilters={{
         industry: sp.industry ?? "",
         service: sp.service ?? "",

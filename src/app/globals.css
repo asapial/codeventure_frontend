@@ -2,58 +2,64 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 210 50% 99%;
+    --foreground: 224 47% 10%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;          /* CodeVenture brand */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96%;
+    --secondary: 214 32% 95%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 214 32% 96%;
+    --muted-foreground: 215 16% 42%;
 
-    --accent: 210 40% 96%;
+    --accent: 214 32% 95%;
     --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
+    --border: 214 25% 88%;
+    --input: 214 25% 88%;
     --ring: 221 83% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222 47% 6%;
+    --background: 224 42% 7%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 8%;
+    --card: 224 37% 10%;
     --card-foreground: 210 40% 98%;
+
+    --popover: 224 37% 10%;
+    --popover-foreground: 210 40% 98%;
 
     --primary: 217 91% 60%;
     --primary-foreground: 222 47% 11%;
 
-    --secondary: 217 33% 17%;
+    --secondary: 220 30% 16%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 30% 16%;
+    --muted-foreground: 215 20% 68%;
 
-    --accent: 217 33% 17%;
+    --accent: 220 30% 16%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
+    --border: 219 28% 20%;
+    --input: 219 28% 20%;
     --ring: 217 91% 60%;
   }
 
@@ -65,10 +71,17 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
   html {
     scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+    color: hsl(var(--foreground));
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -83,11 +96,53 @@
   }
 }
 
+@layer utilities {
+  .hero-grid::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.45;
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.055) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(to bottom, black, transparent 82%);
+  }
+
+  .premium-gradient-text {
+    background: linear-gradient(110deg, #2563eb 8%, #0284c7 52%, #22d3ee 96%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .hero-orb {
+    animation: breathe 8s ease-in-out infinite;
+  }
+
+  .float-slow {
+    animation: float 5s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.75; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-secondary: hsl(var(--secondary));

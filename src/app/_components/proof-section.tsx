@@ -1,43 +1,34 @@
 import type { z } from "zod";
-import {
-  outcomeMetricSchema,
-  trustSignalSchema,
-} from "@/types/home";
+import { outcomeMetricSchema, trustSignalSchema } from "@/types/home";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 type Outcome = z.infer<typeof outcomeMetricSchema>;
 type Signal = z.infer<typeof trustSignalSchema>;
 
-interface Props {
-  outcomes: Outcome[];
-  signals: Signal[];
-}
-
-export function ProofSection({ outcomes, signals }: Props) {
+export function ProofSection({ outcomes, signals }: { outcomes: Outcome[]; signals: Signal[] }) {
   return (
-    <section className="border-b">
-      <div className="container mx-auto max-w-6xl px-4 py-16 sm:py-20">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {outcomes.map((m) => (
-            <Card key={m.label}>
-              <CardContent className="p-6">
-                <p className="text-4xl font-semibold tracking-tight">{m.value}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{m.label}</p>
-                {m.context ? (
-                  <p className="mt-1 text-xs text-muted-foreground">{m.context}</p>
-                ) : null}
+    <section className="border-b bg-background">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <div className="grid overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/40 shadow-[0_24px_80px_-48px_rgba(30,64,175,.45)] dark:border-blue-950 dark:from-slate-950 dark:to-blue-950/20 lg:grid-cols-3">
+          {outcomes.map((metric) => (
+            <Card key={metric.label} className="rounded-none border-0 border-b border-blue-100 bg-transparent shadow-none last:border-b-0 dark:border-blue-950 lg:border-b-0 lg:border-r lg:last:border-r-0">
+              <CardContent className="p-7 sm:p-8">
+                <p className="text-3xl font-bold tracking-[-0.035em] text-blue-600 dark:text-blue-400">{metric.value}</p>
+                <p className="mt-2 text-sm font-semibold text-foreground">{metric.label}</p>
+                {metric.description ? <p className="mt-2 text-xs leading-5 text-muted-foreground">{metric.description}</p> : null}
               </CardContent>
             </Card>
           ))}
         </div>
 
         {signals.length > 0 ? (
-          <div className="mt-10 flex flex-wrap gap-2">
-            {signals.map((s) => (
-              <Badge key={s.label} variant="secondary">
-                <span className="font-semibold">{s.value}</span>
-                <span className="ml-1 text-muted-foreground">{s.label}</span>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <span className="mr-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Built with</span>
+            {signals.map((signal) => (
+              <Badge key={signal.label} variant="outline" className="rounded-full border-blue-100 bg-blue-50/60 px-3.5 py-1.5 text-blue-950 dark:border-blue-950 dark:bg-blue-950/30 dark:text-blue-100">
+                <span className="font-bold">{signal.value}</span>
+                <span className="ml-1.5 text-blue-700/70 dark:text-blue-300/70">{signal.label}</span>
               </Badge>
             ))}
           </div>

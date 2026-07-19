@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, type ApiResult } from "./client";
 import {
   quoteDraftResponseSchema,
   quoteServicesResponseSchema,
@@ -31,13 +31,9 @@ export async function submitQuoteDraft(
  * Fetch the dropdown options for the "which services" picker. Cached at
  * the edge for 1 hour; this list rarely changes.
  */
-export async function fetchQuoteServices(): Promise<QuoteServicesResponse> {
-  const result = await apiFetch("/quotes/services", {
+export async function fetchQuoteServices(): Promise<ApiResult<QuoteServicesResponse>> {
+  return apiFetch("/quotes/services", {
     schema: quoteServicesResponseSchema,
     next: { revalidate: 3600, tags: ["public:quote-services"] },
   });
-  if (!result.ok) {
-    throw new Error(result.error.error.message);
-  }
-  return result.data;
 }

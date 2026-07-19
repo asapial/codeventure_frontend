@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-import { fetchContactDetails } from "@/lib/api/contact";
+import { contactDetails } from "@/content/contact";
 
 import { ContactForm } from "./_components/contact-form";
 import { ContactDetailsList } from "./_components/contact-details";
-import { ContactFallback } from "./_components/contact-fallback";
+import { PageHero } from "@/components/shared/page-hero";
 
 export const metadata: Metadata = {
   title: "Contact CodeVenture",
@@ -19,37 +19,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ContactPage() {
-  const result = await fetchContactDetails();
-
-  if (!result.ok) {
-    return (
-      <ContactFallback
-        status={result.status}
-        message={result.error.error.message}
-      />
-    );
-  }
-
-  const details = result.data;
+export default function ContactPage() {
+  const details = contactDetails;
 
   return (
-    <div className="bg-gradient-to-b from-background to-muted/30">
-      <header className="border-b">
-        <div className="container mx-auto max-w-5xl px-4 py-12">
-          <p className="text-sm font-medium text-muted-foreground">Contact</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            {details.headline}
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            {details.intro}
-          </p>
-        </div>
-      </header>
+    <div className="bg-gradient-to-b from-background to-blue-50/30 dark:to-blue-950/10">
+      <PageHero eyebrow="Contact" title={details.headline} description={details.intro} compact />
 
-      <section className="container mx-auto max-w-5xl px-4 py-12">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-5">
-          <div className="lg:col-span-3">
+          <div className="rounded-2xl border border-blue-100 bg-card p-6 shadow-[0_24px_70px_-38px_rgba(30,64,175,.45)] dark:border-blue-950 sm:p-8 lg:col-span-3">
             <h2 className="sr-only">Send a message</h2>
             <ContactForm defaultTopic="general" />
           </div>

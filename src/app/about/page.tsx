@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchAboutPage } from "@/lib/api/about";
+import { aboutPage } from "@/content/about-page";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { AboutFallback } from "./_components/about-fallback";
+import { PageHero } from "@/components/shared/page-hero";
 
 export const metadata: Metadata = {
   title: "About CodeVenture",
@@ -22,37 +22,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function AboutPage() {
-  const result = await fetchAboutPage();
-
-  if (!result.ok) {
-    return (
-      <AboutFallback
-        status={result.status}
-        message={result.error.error.message}
-      />
-    );
-  }
-
-  const about = result.data;
+export default function AboutPage() {
+  const about = aboutPage;
 
   return (
     <>
-      <header className="border-b bg-gradient-to-b from-background to-muted/40">
-        <div className="container mx-auto max-w-4xl px-4 py-16 sm:py-24">
-          <p className="text-sm font-medium text-muted-foreground">About</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">
-            {about.headline}
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-            {about.intro}
-          </p>
-        </div>
-      </header>
+      <PageHero eyebrow="About CodeVenture" title={about.headline} description={about.intro} />
 
       {about.mission ? (
         <section className="border-b">
-          <div className="container mx-auto max-w-3xl px-4 py-12">
+          <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Our mission
             </h2>
@@ -73,7 +52,7 @@ export default async function AboutPage() {
               {about.values.map((v) => (
                 <li
                   key={v.title}
-                  className="rounded-lg border border-border bg-card p-5"
+                className="rounded-2xl border border-blue-100 bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg dark:border-blue-950"
                 >
                   <p className="font-semibold">{v.title}</p>
                   <p className="mt-2 text-sm text-muted-foreground">
