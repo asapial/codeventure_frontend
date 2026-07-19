@@ -758,7 +758,7 @@ import { signInSchema } from "./auth.validation";
 describe("signInSchema", () => {
   it("accepts a valid email + password", () => {
     const result = signInSchema.safeParse({
-      email: "[email protected]",
+      email: "ada@example.com",
       password: "correcthorsebatterystaple",
     });
     expect(result.success).toBe(true);
@@ -766,7 +766,7 @@ describe("signInSchema", () => {
 
   it.each([
     ["missing email", { password: "abcdefgh1" }],
-    ["missing password", { email: "[email protected]" }],
+    ["missing password", { email: "ada@example.com" }],
     ["bad email shape", { email: "not-an-email", password: "abcdefgh1" }],
   ])("rejects %s", (_label, input) => {
     const result = signInSchema.safeParse(input);
@@ -804,19 +804,19 @@ describe("signIn service", () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
     await expect(
-      signIn({ email: "[email protected]", password: "anything1" }),
+      signIn({ email: "ada@example.com", password: "anything1" }),
     ).rejects.toMatchObject({ statusCode: 401 });
   });
 
   it("returns the session payload on success", async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: "u1",
-      email: "[email protected]",
+      email: "ada@example.com",
       passwordHash: "hashed",
     } as never);
 
     const session = await signIn({
-      email: "[email protected]",
+      email: "ada@example.com",
       password: "anything1",
     });
 
@@ -857,7 +857,7 @@ describe("POST /api/v1/auth/sign-in", () => {
   it("returns 200 and echoes the email", async () => {
     const res = await request(buildApp())
       .post("/api/v1/auth/sign-in")
-      .send({ email: "[email protected]", password: "anything1" });
+      .send({ email: "ada@example.com", password: "anything1" });
 
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
@@ -1075,7 +1075,7 @@ describe("signIn", () => {
     });
 
     const session = await signIn({
-      email: "[email protected]",
+      email: "ada@example.com",
       password: "Sup3rSecret!",
     });
 
@@ -1092,7 +1092,7 @@ describe("signIn", () => {
     });
 
     await expect(
-      signIn({ email: "[email protected]", password: "x" }),
+      signIn({ email: "ada@example.com", password: "x" }),
     ).rejects.toBeInstanceOf(ApiError);
   });
 });
@@ -1145,13 +1145,13 @@ describe("SignInForm", () => {
     const user = userEvent.setup();
 
     render(<SignInForm />);
-    await user.type(screen.getByLabelText(/email/i), "[email protected]");
+    await user.type(screen.getByLabelText(/email/i), "ada@example.com");
     await user.type(screen.getByLabelText(/password/i), "Sup3rSecret!");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {
       expect(signIn).toHaveBeenCalledWith({
-        email: "[email protected]",
+        email: "ada@example.com",
         password: "Sup3rSecret!",
       });
     });
@@ -1253,6 +1253,275 @@ npm run test:watch
 # With coverage
 npm run test:coverage
 ```
+
+### 2.6 Auth & Public Page Patterns
+
+P16-P21 added the post-sign-in surfaces (2FA verify, register, verify-email) and
+public legal pages. They share a small set of conventions worth capturing here
+so future agents don't have to rediscover them.
+
+#### Page route layout
+
+```
+src/app/
+├── (auth)/
+│   ├── 2fa/page.tsx              ← Server Component: session check + render <Verify2FAForm/>
+│   ├── 2fa/_components/verify-2fa-form.tsx
+│   ├── register/page.tsx
+│   ├── register/_components/register-form.tsx
+│   └── verify-email/page.tsx
+└── legal/[slug]/
+    ├── page.tsx                  ← Server Component: apiFetch with ISR tag
+    └── not-found.tsx
+```
+
+Conventions:
+- The `page.tsx` is a **Server Component**. It calls `getSession()` from
+  `src/lib/auth/session` (which imports `server-only`) and `redirect()`s to the
+  appropriate route when the user is in the wrong auth state (already signed
+  in, missing challenge cookie, etc.).
+- The interactive form lives at `<route>/_components/<feature>-form.tsx` and is
+  marked `"use client"`. The underscore prefix keeps it out of the routing tree.
+- The page passes nothing to the form unless it's derived server-side (e.g. a
+  `challengeToken` read from cookies). Static copy stays in the form.
+
+#### Server Component session check
+
+```tsx
+// src/app/(auth)/2fa/page.tsx
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth/session";
+import { Verify2FAForm } from "./_components/verify-2fa-form";
+
+export default async function Verify2FAPage() {
+  const session = await getSession();
+  if (!session) redirect("/sign-in");
+  if (!session.requires2FA) redirect("/");
+
+  return (
+    <main>
+      <Verify2FAForm />
+    </main>
+  );
+}
+```
+
+`getSession()` is itself a Server-Component-only helper (`import "server-only"`
+at the top of `src/lib/auth/session.ts`). Tests stub it via
+`vi.mock("@/lib/api/auth", () => ({ fetchSession: vi.fn(...) }))` and the
+`cookies()` call via `vi.mock("next/headers", ...)`.
+
+#### Client form with `zodResolver`
+
+```tsx
+// src/app/(auth)/2fa/_components/verify-2fa-form.tsx
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { twoFactorVerifySchema, type TwoFactorVerifyInput } from "@/types/auth";
+import { verifyTwoFactor, ApiError } from "@/lib/api/auth-2fa";
+
+export function Verify2FAForm() {
+  const router = useRouter();
+  const { register, handleSubmit, formState, setError } =
+    useForm<TwoFactorVerifyInput>({ resolver: zodResolver(twoFactorVerifySchema) });
+
+  async function onSubmit(values: TwoFactorVerifyInput) {
+    try {
+      await verifyTwoFactor(values);
+      router.replace("/");
+      router.refresh();
+    } catch (err) {
+      if (err instanceof ApiError && err.body.code === "INVALID_2FA_CODE") {
+        setError("code", { message: "That code didn't work. Try again." });
+      } else {
+        setError("root", { message: "Something went wrong. Please retry." });
+      }
+    }
+  }
+
+  return ( /* … */ );
+}
+```
+
+Notes:
+- The schema is the **single source of truth** — type the form off
+  `z.infer<typeof …>` rather than redefining a `FormValues` type.
+- `setError("code", …)` writes to a specific field. `setError("root", …)`
+  surfaces a form-wide banner.
+- Always `router.refresh()` after a successful auth mutation so Server
+  Components re-read the session cookie.
+
+#### `apiFetch` + `ApiError` helper convention
+
+Every API helper module under `src/lib/api/` follows the same shape:
+
+```ts
+// src/lib/api/auth-2fa.ts
+import { apiFetch, type ApiResult } from "./client";
+import { ApiError } from "./auth";                  // ← ApiError lives here
+import { type TwoFactorVerifyInput } from "@/types/auth";
+
+export async function verifyTwoFactor(payload: TwoFactorVerifyInput) {
+  const result: ApiResult<{ ok: true }> = await apiFetch("/auth/2fa/verify", {
+    method: "POST",
+    body: payload,
+    forwardCookies: true,                          // sets cv_session cookie
+  });
+
+  if (!result.ok) throw new ApiError(result.status, result.error.error);
+  return result.data;
+}
+```
+
+Rules:
+- **`apiFetch` does not throw.** It returns
+  `ApiResult<T> = { ok: true; status; data: T } | { ok: false; status; error: { error: EnvelopeError } }`.
+- The helper, not the form, translates `!result.ok` into `new ApiError(status, envelopeError)`.
+  `ApiError` is exported from `./auth` (not `./client`).
+- `forwardCookies: true` is required for any endpoint that sets `cv_session`
+  (`/auth/2fa/verify`, `/auth/register`, `/auth/verify-email/confirm`).
+  Leave it off for `/auth/2fa/resend` etc.
+
+#### Testing API helpers
+
+Mock the transport, drive the helper, assert on the call shape and the thrown
+`ApiError`. **Do not** chain two `.rejects` assertions on the same promise — the
+second `await` re-invokes the helper with no fresh mock and throws a TypeError.
+Use one explicit try/catch:
+
+```ts
+// src/lib/api/auth-2fa.test.ts
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("./client", () => ({
+  apiFetch: vi.fn(),
+  ApiTransportError: class extends Error {},         // shape only
+}));
+vi.mock("./auth", () => ({
+  ApiError: class ApiError extends Error {
+    constructor(public status: number, public body: { code: string; message: string }) {
+      super(body.message);
+    }
+  },
+}));
+
+import { apiFetch } from "./client";
+import { ApiError } from "./auth";
+import { verifyTwoFactor, resendTwoFactor } from "./auth-2fa";
+
+describe("verifyTwoFactor", () => {
+  it("posts the parsed body and forwards cookies on success", async () => {
+    vi.mocked(apiFetch).mockResolvedValue({
+      ok: true, status: 200, data: { ok: true } as never,
+    });
+
+    await expect(verifyTwoFactor({ code: "123456", challengeToken: "ct" }))
+      .resolves.toEqual({ ok: true });
+
+    expect(apiFetch).toHaveBeenCalledWith("/auth/2fa/verify", {
+      method: "POST",
+      body: { code: "123456", challengeToken: "ct" },
+      forwardCookies: true,
+    });
+  });
+
+  it("throws ApiError with the envelope on a 400", async () => {
+    vi.mocked(apiFetch).mockResolvedValue({
+      ok: false,
+      status: 400,
+      error: { error: { code: "INVALID_2FA_CODE", message: "Bad code" } },
+    } as never);
+
+    try {
+      await verifyTwoFactor({ code: "000000", challengeToken: "ct" });
+      throw new Error("expected ApiError");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ApiError);
+      expect(err).toMatchObject({
+        status: 400,
+        body: { code: "INVALID_2FA_CODE", message: "Bad code" },
+      });
+    }
+  });
+});
+```
+
+#### Honeypot field (register form)
+
+`registerSchema` rejects any non-empty `website` field as a bot signal. Render
+it offscreen so humans never fill it:
+
+```tsx
+<input
+  type="text"
+  tabIndex={-1}
+  autoComplete="off"
+  aria-hidden="true"
+  className="absolute -left-[9999px] h-0 w-0 opacity-0"
+  {...register("website")}
+/>
+```
+
+If the bot fills it, `zodResolver` will short-circuit the submit with a
+validation error and you never call `register()`.
+
+#### ISR for public legal pages
+
+`/legal/[slug]` is publicly cacheable. Use `apiFetch`'s `next` option to get
+per-slug tag invalidation:
+
+```tsx
+// src/app/legal/[slug]/page.tsx
+import { apiFetch } from "@/lib/api/client";
+import { notFound } from "next/navigation";
+
+export default async function LegalPage(
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  const { slug } = await params;
+  const result = await apiFetch(`/public/legal/${slug}`, {
+    next: { revalidate: 3600, tags: [`legal:${slug}`] },
+  });
+  if (!result.ok) notFound();
+
+  return <article dangerouslySetInnerHTML={{ __html: result.data.bodyHtml }} />;
+}
+```
+
+When a new legal version is published, hit
+`revalidateTag(\`legal:${slug}\`)` (typically from a CMS webhook) to bust just
+that document.
+
+#### Catching the `localStorage` / `server-only` footguns
+
+The setup file must tolerate specs that don't pull in DOM globals:
+
+```ts
+// vitest.setup.ts
+try {
+  localStorage?.clear?.();
+  sessionStorage?.clear?.();
+} catch {}
+```
+
+And the package `server-only` (used by `src/lib/auth/session.ts`) is not
+installed; alias it in `vitest.config.ts`:
+
+```ts
+// vitest.config.ts
+resolve: {
+  alias: {
+    ...,
+    "server-only": path.resolve(__dirname, "./vitest.empty.ts"),
+  },
+}
+```
+
+with `vitest.empty.ts` containing only `export {};` and a comment explaining
+why the alias exists.
 
 ---
 
