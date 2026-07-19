@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { CaseStudySummary } from "@/types/portfolio";
 import { PageHero } from "@/components/shared/page-hero";
+import { PageContainer } from "@/components/shared/layout/page-container";
+import { FadeIn, Stagger } from "@/components/shared/motion";
 
 interface Props {
   cases: CaseStudySummary[];
@@ -58,7 +60,8 @@ export function PortfolioView({
       <PageHero eyebrow="Selected work" title="Products designed to make a difference" description="Explore how thoughtful strategy, polished experience design, and robust engineering come together." />
 
       <section className="border-b border-blue-100 bg-blue-50/40 dark:border-blue-950 dark:bg-blue-950/10">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <PageContainer size="5xl" className="py-8">
+          <FadeIn trigger="mount">
           <form
             role="search"
             aria-label="Filter case studies"
@@ -126,11 +129,12 @@ export function PortfolioView({
           <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
             {filtered.length} of {cases.length} case studies
           </p>
-        </div>
+          </FadeIn>
+        </PageContainer>
       </section>
 
       <section className="border-b">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <PageContainer size="5xl" className="py-16">
           {filtered.length === 0 ? (
             <EmptyState
               title="No matching case studies"
@@ -138,48 +142,46 @@ export function PortfolioView({
               action={{ label: "Clear filters", href: "/portfolio" }}
             />
           ) : (
-            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
               {filtered.map((c) => (
-                <li key={c.slug}>
-                  <Card className="group h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:hover:border-blue-800">
-                    {c.thumbnailUrl ? (
-                      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-lg">
-                        <Image
-                          src={c.thumbnailUrl}
-                          alt={c.thumbnailAlt ?? c.title}
-                          fill
-                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
+                <Card key={c.slug} className="group h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:hover:border-blue-800">
+                  {c.thumbnailUrl ? (
+                    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-lg">
+                      <Image
+                        src={c.thumbnailUrl}
+                        alt={c.thumbnailAlt ?? c.title}
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  ) : null}
+                  <CardHeader>
+                    {c.industry ? (
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {c.industry}
+                      </p>
                     ) : null}
-                    <CardHeader>
-                      {c.industry ? (
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                          {c.industry}
-                        </p>
-                      ) : null}
-                      <CardTitle className="text-lg">{c.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {c.summary ? (
-                        <p className="text-sm text-muted-foreground">
-                          {c.summary}
-                        </p>
-                      ) : null}
-                      <Link
-                        href={`/portfolio/${c.slug}`}
-                        className="text-sm font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
-                      >
-                        Read case study →
-                      </Link>
-                    </CardContent>
-                  </Card>
-                </li>
+                    <CardTitle className="text-lg">{c.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {c.summary ? (
+                      <p className="text-sm text-muted-foreground">
+                        {c.summary}
+                      </p>
+                    ) : null}
+                    <Link
+                      href={`/portfolio/${c.slug}`}
+                      className="text-sm font-semibold text-blue-600 underline-offset-4 hover:underline dark:text-blue-400"
+                    >
+                      Read case study →
+                    </Link>
+                  </CardContent>
+                </Card>
               ))}
-            </ul>
+            </Stagger>
           )}
-        </div>
+        </PageContainer>
       </section>
     </>
   );

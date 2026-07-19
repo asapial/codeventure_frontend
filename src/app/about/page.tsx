@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PageHero } from "@/components/shared/page-hero";
+import { PageContainer } from "@/components/shared/layout/page-container";
+import { FadeIn, ScrollReveal, Stagger } from "@/components/shared/motion";
 
 export const metadata: Metadata = {
   title: "About CodeVenture",
@@ -31,26 +33,30 @@ export default function AboutPage() {
 
       {about.mission ? (
         <section className="border-b">
-          <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Our mission
-            </h2>
-            <p className="mt-4 whitespace-pre-line text-muted-foreground">
-              {about.mission}
-            </p>
-          </div>
+          <PageContainer size="4xl" className="py-16 sm:py-20">
+            <FadeIn trigger="mount">
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Our mission
+              </h2>
+              <p className="mt-4 whitespace-pre-line text-muted-foreground">
+                {about.mission}
+              </p>
+            </FadeIn>
+          </PageContainer>
         </section>
       ) : null}
 
       {about.values.length > 0 ? (
         <section className="border-b">
-          <div className="container mx-auto max-w-6xl px-4 py-12">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              What we value
-            </h2>
-            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <PageContainer size="5xl" className="py-12">
+            <ScrollReveal>
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                What we value
+              </h2>
+            </ScrollReveal>
+            <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
               {about.values.map((v) => (
-                <li
+                <div
                   key={v.title}
                 className="rounded-2xl border border-blue-100 bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-300 hover:shadow-lg dark:border-blue-950"
                 >
@@ -58,22 +64,24 @@ export default function AboutPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     {v.description}
                   </p>
-                </li>
+                </div>
               ))}
-            </ul>
-          </div>
+            </Stagger>
+          </PageContainer>
         </section>
       ) : null}
 
       {about.milestones.length > 0 ? (
         <section className="border-b">
-          <div className="container mx-auto max-w-4xl px-4 py-12">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Our journey
-            </h2>
-            <ol className="mt-8 space-y-6">
+          <PageContainer size="4xl" className="py-12">
+            <ScrollReveal>
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Our journey
+              </h2>
+            </ScrollReveal>
+            <Stagger className="mt-8 space-y-6" stagger={0.06}>
               {about.milestones.map((m) => (
-                <li key={`${m.year}-${m.title}`} className="flex gap-4">
+                <div key={`${m.year}-${m.title}`} className="flex gap-4">
                   <span className="w-16 shrink-0 text-lg font-semibold text-primary">
                     {m.year}
                   </span>
@@ -85,64 +93,66 @@ export default function AboutPage() {
                       </p>
                     ) : null}
                   </div>
-                </li>
+                </div>
               ))}
-            </ol>
-          </div>
+            </Stagger>
+          </PageContainer>
         </section>
       ) : null}
 
       {about.team.length > 0 ? (
         <section className="border-b">
-          <div className="container mx-auto max-w-6xl px-4 py-12">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              The team
-            </h2>
-            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <PageContainer size="5xl" className="py-12">
+            <ScrollReveal>
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                The team
+              </h2>
+            </ScrollReveal>
+            <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
               {about.team.map((member) => (
-                <li key={member.name}>
-                  <Card>
-                    {member.photoUrl ? (
-                      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg">
-                        <Image
-                          src={member.photoUrl}
-                          alt={member.name}
-                          fill
-                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : null}
-                    <CardHeader>
-                      <CardTitle className="text-lg">{member.name}</CardTitle>
+                <Card key={member.name}>
+                  {member.photoUrl ? (
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg">
+                      <Image
+                        src={member.photoUrl}
+                        alt={member.name}
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : null}
+                  <CardHeader>
+                    <CardTitle className="text-lg">{member.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {member.role}
+                    </p>
+                  </CardHeader>
+                  {member.bio ? (
+                    <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        {member.role}
+                        {member.bio}
                       </p>
-                    </CardHeader>
-                    {member.bio ? (
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          {member.bio}
-                        </p>
-                      </CardContent>
-                    ) : null}
-                  </Card>
-                </li>
+                    </CardContent>
+                  ) : null}
+                </Card>
               ))}
-            </ul>
-          </div>
+            </Stagger>
+          </PageContainer>
         </section>
       ) : null}
 
       {about.certifications.length > 0 ? (
         <section className="border-b">
-          <div className="container mx-auto max-w-4xl px-4 py-12">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Certifications
-            </h2>
-            <ul className="mt-6 divide-y divide-border rounded-lg border border-border">
+          <PageContainer size="4xl" className="py-12">
+            <ScrollReveal>
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Certifications
+              </h2>
+            </ScrollReveal>
+            <Stagger className="mt-6 divide-y divide-border rounded-lg border border-border" stagger={0.05}>
               {about.certifications.map((c) => (
-                <li
+                <div
                   key={`${c.name}-${c.issuer}`}
                   className="flex items-center justify-between gap-4 px-4 py-3 text-sm"
                 >
@@ -163,34 +173,36 @@ export default function AboutPage() {
                       View →
                     </a>
                   ) : null}
-                </li>
+                </div>
               ))}
-            </ul>
-          </div>
+            </Stagger>
+          </PageContainer>
         </section>
       ) : null}
 
       <Separator />
 
       <section className="bg-foreground text-background">
-        <div className="container mx-auto max-w-3xl px-4 py-16 text-center">
-          <h2 className="text-2xl font-semibold sm:text-3xl">
-            Let&rsquo;s work together
-          </h2>
-          <p className="mt-3 text-background/80">
-            Tell us about your project and we will reply within two business
-            days.
-          </p>
-          <Link
-            href="/request-quote"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "mt-6 bg-background text-foreground hover:bg-background/90",
-            )}
-          >
-            Request a quote
-          </Link>
-        </div>
+        <PageContainer size="4xl" className="py-16 text-center">
+          <FadeIn trigger="mount">
+            <h2 className="text-2xl font-semibold sm:text-3xl">
+              Let&rsquo;s work together
+            </h2>
+            <p className="mt-3 text-background/80">
+              Tell us about your project and we will reply within two business
+              days.
+            </p>
+            <Link
+              href="/request-quote"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "mt-6 bg-background text-foreground hover:bg-background/90",
+              )}
+            >
+              Request a quote
+            </Link>
+          </FadeIn>
+        </PageContainer>
       </section>
     </>
   );

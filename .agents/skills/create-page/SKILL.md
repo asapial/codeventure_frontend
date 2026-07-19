@@ -77,6 +77,88 @@ trailing slash; routes are mounted under `/api/v1` on the backend.
 - Use **CodeVenture design tokens**; no random feature colors.
 - Animation must **never delay** content or primary actions.
 
+## Page width & container (mandatory)
+
+Every visible route MUST keep its content width inside a **centered
+`max-w-5xl`** container. Wider-than-text layout (full-bleed hero bands,
+section backgrounds) is allowed, but the readable/prose area inside any
+section MUST be wrapped in the shared `PageContainer` primitive.
+
+```tsx
+import { PageContainer } from "@/components/shared/layout/page-container";
+
+<section className="bg-blue-50/30 py-16">
+  <PageContainer>
+    {/* content sits in a 64rem-wide centered column */}
+  </PageContainer>
+</section>
+```
+
+Rules:
+
+- `PageContainer` always renders `mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8`.
+- Inner grids/cards may exceed the visual width via their own negative
+  margins or full-bleed wrappers, but text columns stay under `max-w-5xl`.
+- For hero bands that legitimately need to breathe wider (e.g. landing
+  hero with a side-by-side mockup), wrap the **outer** band in `max-w-7xl`
+  and the **inner prose/CTAs** in `PageContainer`.
+- The `SiteHeader` and `SiteFooter` shells use `max-w-7xl` for nav density
+  but any in-content prose returns to `max-w-5xl`.
+
+## Animation library policy (mandatory)
+
+Three libraries are approved and shipped:
+
+| Library         | Version  | Use for                                                                                          |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `framer-motion` | `^12`    | **Primary.** Declarative UI transitions, page-reveals, hover/tap, layout animations, modals.   |
+| `gsap`          | `^3.15`  | **Reserved.** Complex timelines (hero orb choreography, scroll-pinned sequences, SVG paths).    |
+| `aos`           | `^2.3`   | **Cheap fallback.** Drop-in `data-aos` scroll-reveals on long static content (legal, about).    |
+
+### When to use which
+
+1. **Default to Framer Motion** for almost everything in app routes — its
+   React-native API plays well with Server/Client components and respects
+   `prefers-reduced-motion` out of the box via `useReducedMotion()`.
+2. **Use GSAP only** when a timeline is too complex for Framer Motion (e.g.
+   the landing hero orb, multi-element SVG choreography). Wrap the
+   `useGSAP` call in a Client Component, lazy-load it, and gate on
+   `prefers-reduced-motion`.
+3. **Use AOS sparingly** for long static pages where dropping a
+   `data-aos="fade-up"` attribute is faster than wiring a Client
+   component (legal documents, dense marketing pages). Always mount the
+   AOS initializer once in the root layout (see §13.1).
+
+### Mandatory animation rules
+
+- **Respect `prefers-reduced-motion`.** Framer Motion primitives read it
+  automatically when `useReducedMotion()` is used; GSAP timelines MUST
+  guard with `ScrollTrigger.matchMedia({ ... })`; AOS is auto-disabled.
+- **Never animate primary action visibility.** Buttons and CTAs must be
+  visible and clickable on first paint — animations only enhance focus,
+  hover, or scroll-in.
+- **Always animate `transform` / `opacity`.** Avoid animating layout
+  properties (`width`, `top`, `margin`) on large surfaces.
+- **Lazy-load heavy libs.** GSAP and AOS code must never ship in the
+  Server Component bundle. Always import them in a Client Component.
+- **No animation on `prefers-reduced-motion: reduce`.** Honour the
+  global rule already declared in `globals.css`.
+
+### Approved animation primitives
+
+Import from `@/components/shared/motion/`:
+
+- `<FadeIn>` — single-element fade + Y translate on mount/scroll.
+- `<Stagger>` — children animate in sequence (default 60 ms stagger).
+- `<ScrollReveal>` — Framer Motion `whileInView` reveal with sensible
+  defaults.
+- `<Magnetic>` — optional, for primary CTAs that follow the cursor.
+- `useAOS()` — Client hook that initialises AOS once on mount.
+
+Server Components MUST NOT import these directly; wrap any animated
+content in a colocated `_components/*.tsx` `"use client"` module or
+call `<FadeIn>` / `<ScrollReveal>` inside an existing Client island.
+
 ---
 
 ## UI Components — shadcn/ui (REQUIRED)
@@ -266,13 +348,14 @@ not become URL segments.
 ```tsx
 // src/app/<route>/loading.tsx
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageContainer } from "@/components/shared/layout/page-container";
 
 export default function Loading() {
   return (
-    <main className="mx-auto max-w-5xl p-6" aria-busy="true" aria-live="polite">
+    <PageContainer className="py-16" aria-busy="true" aria-live="polite">
       <Skeleton className="mb-4 h-8 w-1/3" />
       <Skeleton className="h-64 w-full" />
-    </main>
+    </PageContainer>
   );
 }
 ```
@@ -593,6 +676,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 Call toasts from anywhere via `import { toast } from "sonner"`.
+
+### 13.1 AOS one-time initialisation
+
+If any page uses AOS (`data-aos="..."`), mount the initializer once in
+`src/app/client-providers.tsx`:
+
+```tsx
+"use client";
+import { useEffect } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
+export function ClientProviders({ children }) {
+  useEffect(() => {
+    AOS.init({ duration: 600, once: true, easing: "ease-out-quad" });
+  }, []);
+  return <>{children}</>;
+}
+```
+
+Framer Motion and GSAP do **not** need a global mount — they run inside
+their own Client islands.
 
 ---
 

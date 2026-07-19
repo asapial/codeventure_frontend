@@ -8,9 +8,13 @@
  *
  * Heading elements carry anchor ids so the sticky table-of-contents can scroll
  * to them and the IntersectionObserver can track the active section.
+ *
+ * The parsed block list is handed to a Client island (`LegalDocumentBlocks`)
+ * that initialises AOS and animates each block as it scrolls into view.
  */
 
 import { extractHeadings } from "./parse-headings";
+import { LegalDocumentBlocks, type LegalBlock } from "./legal-document-blocks";
 
 interface Props {
   body: string;
@@ -23,65 +27,23 @@ export function LegalDocumentView({ body }: Props) {
   // Pre-compute the heading id for each block so render output is O(n) and
   // doesn't depend on `indexOf` against duplicate blocks.
   let headingCursor = 0;
-  const blockHeadingIds = blocks.map((raw) => {
+  const parsed: LegalBlock[] = blocks.flatMap<LegalBlock>((raw) => {
     const trimmed = raw.trim();
-    if (
-      trimmed.startsWith("# ") ||
-      trimmed.startsWith("## ") ||
-      trimmed.startsWith("### ")
-    ) {
+    if (trimmed.length === 0) return [];
+    if (trimmed.startsWith("### ")) {
       const h = headings[headingCursor++];
-      return h?.id;
+      return [{ kind: "h3", text: trimmed.slice(4), id: h?.id }];
     }
-    return undefined;
+    if (trimmed.startsWith("## ")) {
+      const h = headings[headingCursor++];
+      return [{ kind: "h2", text: trimmed.slice(3), id: h?.id }];
+    }
+    if (trimmed.startsWith("# ")) {
+      const h = headings[headingCursor++];
+      return [{ kind: "h1", text: trimmed.slice(2), id: h?.id }];
+    }
+    return [{ kind: "p", text: trimmed }];
   });
 
-  return (
-    <div className="prose prose-slate dark:prose-invert mt-8 max-w-none space-y-4 leading-relaxed">
-      {blocks.map((block, idx) => {
-        const trimmed = block.trim();
-        if (trimmed.length === 0) return null;
-        const id = blockHeadingIds[idx];
-
-        if (trimmed.startsWith("### ")) {
-          return (
-            <h3
-              key={idx}
-              id={id}
-              className="mt-6 text-lg font-semibold tracking-tight scroll-mt-24"
-            >
-              {trimmed.slice(4)}
-            </h3>
-          );
-        }
-        if (trimmed.startsWith("## ")) {
-          return (
-            <h2
-              key={idx}
-              id={id}
-              className="mt-8 text-xl font-semibold tracking-tight scroll-mt-24"
-            >
-              {trimmed.slice(3)}
-            </h2>
-          );
-        }
-        if (trimmed.startsWith("# ")) {
-          return (
-            <h2
-              key={idx}
-              id={id}
-              className="mt-8 text-2xl font-semibold tracking-tight scroll-mt-24"
-            >
-              {trimmed.slice(2)}
-            </h2>
-          );
-        }
-        return (
-          <p key={idx} className="text-sm text-foreground/90 sm:text-base">
-            {trimmed}
-          </p>
-        );
-      })}
-    </div>
-  );
+  return <LegalDocumentBlocks blocks={parsed} />;
 }

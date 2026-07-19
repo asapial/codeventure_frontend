@@ -9,6 +9,8 @@ import { quoteDraftSchema, type QuoteDraft } from "@/types/quote";
 import { submitQuoteDraft } from "@/lib/api/quote";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer } from "@/components/shared/layout/page-container";
+import { FadeIn } from "@/components/shared/motion";
 import { StepContact } from "./step-contact";
 import { StepProject } from "./step-project";
 import { StepBudget } from "./step-budget";
@@ -51,7 +53,9 @@ export function RequestQuoteView({ services, prefill }: { services: ServiceOptio
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} noValidate aria-labelledby="rq-heading" className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <form onSubmit={methods.handleSubmit(onSubmit)} noValidate aria-labelledby="rq-heading" className="block">
+        <PageContainer size="5xl" className="py-12 sm:py-16">
+        <FadeIn trigger="mount">
         <header className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50/40 p-6 shadow-[0_24px_70px_-38px_rgba(30,64,175,.45)] dark:border-blue-950 dark:from-blue-950/30 dark:via-card dark:to-cyan-950/20 sm:p-8">
           <div className="absolute -right-16 -top-20 size-56 rounded-full bg-blue-500/10 blur-3xl" />
           <p className="relative inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400"><Sparkles className="size-3.5" aria-hidden="true" /> Start a project</p>
@@ -82,6 +86,8 @@ export function RequestQuoteView({ services, prefill }: { services: ServiceOptio
           <Button type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0} variant="outline">Back</Button>
           {step < stepTitles.length - 1 ? <Button type="button" onClick={goNext}>Continue</Button> : <Button type="submit" disabled={methods.formState.isSubmitting}>{methods.formState.isSubmitting ? "Submitting…" : "Submit request"}</Button>}
         </div>
+        </FadeIn>
+        </PageContainer>
       </form>
     </FormProvider>
   );

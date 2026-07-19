@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PageHero } from "@/components/shared/page-hero";
+import { PageContainer } from "@/components/shared/layout/page-container";
 import { Separator } from "@/components/ui/separator";
 import { LegalDocumentView } from "../[document]/_components/legal-document";
 import { LegalToc } from "../[document]/_components/legal-toc";
@@ -32,7 +33,7 @@ export function LegalPageLayout({ document }: Props) {
         compact
       />
 
-      <section className="container mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <PageContainer size="5xl" className="py-12">
         <div className="grid gap-10 lg:grid-cols-[14rem_minmax(0,1fr)]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <LegalToc headings={headings} />
@@ -57,7 +58,7 @@ export function LegalPageLayout({ document }: Props) {
             </footer>
           </div>
         </div>
-      </section>
+      </PageContainer>
     </article>
   );
 }

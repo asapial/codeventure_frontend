@@ -5,6 +5,8 @@ import { contactDetails } from "@/content/contact";
 import { ContactForm } from "./_components/contact-form";
 import { ContactDetailsList } from "./_components/contact-details";
 import { PageHero } from "@/components/shared/page-hero";
+import { PageContainer } from "@/components/shared/layout/page-container";
+import { FadeIn } from "@/components/shared/motion";
 
 export const metadata: Metadata = {
   title: "Contact CodeVenture",
@@ -26,17 +28,19 @@ export default function ContactPage() {
     <div className="bg-gradient-to-b from-background to-blue-50/30 dark:to-blue-950/10">
       <PageHero eyebrow="Contact" title={details.headline} description={details.intro} compact />
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-5">
-          <div className="rounded-2xl border border-blue-100 bg-card p-6 shadow-[0_24px_70px_-38px_rgba(30,64,175,.45)] dark:border-blue-950 sm:p-8 lg:col-span-3">
-            <h2 className="sr-only">Send a message</h2>
-            <ContactForm defaultTopic="general" />
+      <PageContainer size="5xl" className="py-16 sm:py-20">
+        <FadeIn trigger="mount">
+          <div className="grid gap-12 lg:grid-cols-5">
+            <div className="rounded-2xl border border-blue-100 bg-card p-6 shadow-[0_24px_70px_-38px_rgba(30,64,175,.45)] dark:border-blue-950 sm:p-8 lg:col-span-3">
+              <h2 className="sr-only">Send a message</h2>
+              <ContactForm defaultTopic="general" />
+            </div>
+            <aside className="lg:col-span-2">
+              <ContactDetailsList details={details} />
+            </aside>
           </div>
-          <aside className="lg:col-span-2">
-            <ContactDetailsList details={details} />
-          </aside>
-        </div>
-      </section>
+        </FadeIn>
+      </PageContainer>
     </div>
   );
 }

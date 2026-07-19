@@ -9,6 +9,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHero } from "@/components/shared/page-hero";
+import { PageContainer } from "@/components/shared/layout/page-container";
+import { ScrollReveal, Stagger } from "@/components/shared/motion";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -60,14 +62,16 @@ export default function ServicesPage() {
             className="border-b border-blue-100/70 last:border-b-0 dark:border-blue-950/70"
             aria-labelledby={`services-${cat}`}
           >
-            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-              <h2
-                id={`services-${cat}`}
-                className="text-2xl font-bold tracking-[-0.03em] sm:text-4xl"
-              >
-                {CATEGORY_LABELS[cat]}
-              </h2>
-              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <PageContainer size="5xl" className="py-16 sm:py-20">
+              <ScrollReveal>
+                <h2
+                  id={`services-${cat}`}
+                  className="text-2xl font-bold tracking-[-0.03em] sm:text-4xl"
+                >
+                  {CATEGORY_LABELS[cat]}
+                </h2>
+              </ScrollReveal>
+              <Stagger className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" stagger={0.07}>
                 {items.map((s) => (
                   <Card key={s.slug} className="group transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl dark:hover:border-blue-800">
                     <CardHeader>
@@ -87,8 +91,8 @@ export default function ServicesPage() {
                     </CardContent>
                   </Card>
                 ))}
-              </div>
-            </div>
+              </Stagger>
+            </PageContainer>
           </section>
         );
       })}

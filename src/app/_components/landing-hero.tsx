@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/shared/layout/page-container";
+import { FadeIn, ScrollReveal } from "@/components/shared/motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -26,11 +31,24 @@ export function LandingHero({
   return (
     <section className="hero-grid relative isolate overflow-hidden border-b">
       <div className="absolute inset-0 -z-20 bg-gradient-to-b from-blue-50/90 via-background to-background dark:from-blue-950/35" />
-      <div className="hero-orb absolute -right-24 top-8 -z-10 size-[34rem] rounded-full bg-blue-500/20 blur-3xl dark:bg-blue-500/15" />
+      <motion.div
+        aria-hidden="true"
+        className="hero-orb absolute -right-24 top-8 -z-10 size-[34rem] rounded-full bg-blue-500/20 blur-3xl dark:bg-blue-500/15"
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.4, ease: "easeOut" }}
+      />
       <div className="absolute -left-48 top-40 -z-10 size-96 rounded-full bg-cyan-400/10 blur-3xl" />
-
-      <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-7xl items-center gap-14 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-28">
-        <div className="max-w-3xl">
+      <PageContainer
+        size="7xl"
+        className="grid min-h-[calc(100svh-4.5rem)] items-center gap-14 py-16 sm:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:py-28"
+      >
+        <FadeIn
+          trigger="mount"
+          y={24}
+          duration={0.7}
+          className="max-w-3xl"
+        >
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm backdrop-blur dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
             <Sparkles className="size-3.5" aria-hidden="true" />
             Digital product studio for ambitious teams
@@ -68,9 +86,13 @@ export function LandingHero({
               </span>
             ))}
           </div>
-        </div>
+        </FadeIn>
 
-        <div className="relative mx-auto w-full max-w-xl lg:mx-0">
+        <ScrollReveal
+          direction="right"
+          delay={0.15}
+          className="relative mx-auto w-full max-w-xl lg:mx-0"
+        >
           <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-gradient-to-br from-blue-500/20 via-cyan-400/5 to-transparent blur-2xl" />
           <div className="overflow-hidden rounded-[1.75rem] border border-white/70 bg-white/80 shadow-2xl shadow-blue-950/15 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/75 dark:shadow-black/40">
             <div className="flex items-center justify-between border-b border-slate-200/70 px-5 py-4 dark:border-white/10">
@@ -127,8 +149,8 @@ export function LandingHero({
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Partner mode</p>
             <p className="mt-1 text-sm font-bold">Think. Ship. Improve.</p>
           </div>
-        </div>
-      </div>
+        </ScrollReveal>
+      </PageContainer>
     </section>
   );
 }
