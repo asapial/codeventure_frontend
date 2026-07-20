@@ -14,8 +14,8 @@ export type ApiErrorBody = {
 };
 
 export type ApiResult<T> =
-  | { ok: true; status: number; data: T }
-  | { ok: false; status: number; error: ApiErrorBody; raw?: unknown };
+  | { ok: true; status: number; data: T; requestId?: string }
+  | { ok: false; status: number; error: ApiErrorBody; raw?: unknown; requestId?: string };
 
 const BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000"
@@ -83,6 +83,7 @@ export async function apiFetch<T>(
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const payload: unknown = isJson ? await res.json() : await res.text();
+  const requestId = res.headers.get("x-request-id") ?? undefined;
 
   if (!res.ok) {
     const errorBody =
@@ -92,10 +93,16 @@ export async function apiFetch<T>(
             error: {
               code: "UNKNOWN",
               message: res.statusText || "Request failed",
-              requestId: res.headers.get("x-request-id") ?? undefined,
+              requestId,
             },
           };
-    return { ok: false, status: res.status, error: errorBody, raw: payload };
+    return {
+      ok: false,
+      status: res.status,
+      error: errorBody,
+      raw: payload,
+      requestId,
+    };
   }
 
   const data =
@@ -118,16 +125,17 @@ export async function apiFetch<T>(
           error: {
             code: "SCHEMA_MISMATCH",
             message: "API response did not match expected schema",
-            requestId: res.headers.get("x-request-id") ?? undefined,
+            requestId,
           },
         },
         raw: data,
+        requestId,
       };
     }
-    return { ok: true, status: res.status, data: parsed.data };
+    return { ok: true, status: res.status, data: parsed.data, requestId };
   }
 
-  return { ok: true, status: res.status, data: data as T };
+  return { ok: true, status: res.status, data: data as T, requestId };
 }
 
 export class ApiTransportError extends Error {
@@ -154,4 +162,48 @@ export class ApiError extends Error {
     super(body.message);
     this.name = "ApiError";
   }
+
+  /**
+   * Short, single-line suffix suitable for pasting into a support ticket,
+   * an analytics breadcrumb, or a copy-to-clipboard toast action.
+   * Returns an empty string when the server didn't echo a request id.
+   */
+  get traceId(): string {
+    return this.body.requestId ? `ref ${this.body.requestId}` : "";
+  }
+}
+
+/**
+ * Render an `ApiError` into a Sonner toast description.
+ *
+ *   toast.error(formatApiErrorMessage(err))
+ *
+ * Keeps the message concise, surfaces field-level validation errors when the
+ * server provided them, and appends the request id so users can quote it
+ * to support without having to open DevTools.
+ */
+export function formatApiErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    const fieldHint = formatFieldErrors(err.body.fieldErrors);
+    const trace = err.traceId;
+    return [err.body.message, fieldHint, trace].filter(Boolean).join(" ");
+  }
+  if (err instanceof ApiTransportError) {
+    return "We couldn’t reach the server. Check your connection and try again.";
+  }
+  if (err instanceof Error) return err.message;
+  return "Something went wrong. Please try again.";
+}
+
+function formatFieldErrors(
+  fieldErrors: Record<string, string[]> | undefined,
+): string {
+  if (!fieldErrors) return "";
+  const lines: string[] = [];
+  for (const [field, msgs] of Object.entries(fieldErrors)) {
+    if (Array.isArray(msgs) && msgs.length > 0) {
+      lines.push(`${field}: ${msgs.join(", ")}`);
+    }
+  }
+  return lines.join("; ");
 }
