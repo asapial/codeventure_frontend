@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { fetchProjectBySlug } from "@/lib/api/projects";
+import { fetchProjectBySlug } from "@/lib/api/portal";
 
 import { roleGate } from "../../_components/role-gate";
 import { ProjectDetailView } from "./_components/project-detail-view";
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -28,9 +29,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DashboardProjectDetailPage({ params }: Props) {
+const TAB_VALUES = [
+  "overview",
+  "milestones",
+  "approvals",
+  "files",
+  "change-requests",
+  "comments",
+  "activity",
+] as const;
+type TabValue = (typeof TAB_VALUES)[number];
+
+function isTab(value: string | undefined): value is TabValue {
+  return !!value && (TAB_VALUES as readonly string[]).includes(value);
+}
+
+export default async function DashboardProjectDetailPage({
+  params,
+  searchParams,
+}: Props) {
   await roleGate("/dashboard/projects");
   const { slug } = await params;
+  const rawSearch = await searchParams;
+  const initialTab: TabValue = isTab(rawSearch.tab) ? rawSearch.tab : "overview";
+
   let project;
   try {
     project = await fetchProjectBySlug(slug);
@@ -38,5 +60,5 @@ export default async function DashboardProjectDetailPage({ params }: Props) {
     notFound();
   }
 
-  return <ProjectDetailView project={project} />;
+  return <ProjectDetailView project={project} initialTab={initialTab} />;
 }
