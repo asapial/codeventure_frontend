@@ -1,4 +1,4 @@
-import { apiFetch, ApiTransportError } from "./client";
+import { apiFetch, ApiTransportError, ApiError } from "./client";
 import {
   passwordResetRequestSchema,
   resetPasswordSchema,
@@ -91,22 +91,4 @@ export async function fetchSession(): Promise<Session | null> {
   return result.data;
 }
 
-/**
- * Lightweight typed error so forms can render `error.error.fieldErrors`.
- */
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly body: {
-      code: string;
-      message: string;
-      fieldErrors?: Record<string, string[]>;
-      requestId?: string;
-    },
-  ) {
-    super(body.message);
-    this.name = "ApiError";
-  }
-}
-
-export { ApiTransportError };
+export { ApiTransportError, ApiError };

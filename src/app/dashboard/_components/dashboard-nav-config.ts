@@ -13,12 +13,15 @@ import {
   ClipboardList,
   FolderKanban,
   LayoutDashboard,
+  LifeBuoy,
+  ListChecks,
   Mail,
   ReceiptText,
   Settings,
   ShieldCheck,
   Users,
   UsersRound,
+  Wrench,
 } from "lucide-react";
 import type { SessionUser } from "@/types/auth";
 
@@ -56,6 +59,12 @@ export const dashboardNavByRole: Record<DashboardRole, NavGroup[]> = {
           description: "Your engagements with CodeVenture",
         },
         {
+          href: `${BASE}/onboarding`,
+          label: "Onboarding",
+          icon: ListChecks,
+          description: "Get your workspace set up",
+        },
+        {
           href: `${BASE}/members`,
           label: "Members",
           icon: UsersRound,
@@ -66,6 +75,23 @@ export const dashboardNavByRole: Record<DashboardRole, NavGroup[]> = {
           label: "Billing",
           icon: ReceiptText,
           description: "Invoices, payment methods, plans",
+        },
+      ],
+    },
+    {
+      label: "Help & Care",
+      items: [
+        {
+          href: `${BASE}/support`,
+          label: "Support",
+          icon: LifeBuoy,
+          description: "Tickets and replies",
+        },
+        {
+          href: `${BASE}/maintenance`,
+          label: "Maintenance",
+          icon: Wrench,
+          description: "Plan, requests, and history",
         },
       ],
     },
@@ -244,6 +270,11 @@ export const pageAllowedRoles: Record<string, ReadonlyArray<DashboardRole>> = {
   // Owner-only workspace management
   "/dashboard/members": ["owner"],
   "/dashboard/billing": ["owner"],
+  "/dashboard/onboarding": ["owner"],
+
+  // Owner-only help & care surfaces
+  "/dashboard/support": ["owner"],
+  "/dashboard/maintenance": ["owner"],
 
   // Admin-only platform tools
   "/dashboard/users": ["admin"],

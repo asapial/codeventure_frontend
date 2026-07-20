@@ -136,3 +136,22 @@ export class ApiTransportError extends Error {
     this.name = "ApiTransportError";
   }
 }
+
+/**
+ * Lightweight typed error so callers can render `body.fieldErrors` from
+ * forms. Exposed from the shared client because every domain fetcher needs it.
+ */
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly body: {
+      code: string;
+      message: string;
+      fieldErrors?: Record<string, string[]>;
+      requestId?: string;
+    },
+  ) {
+    super(body.message);
+    this.name = "ApiError";
+  }
+}

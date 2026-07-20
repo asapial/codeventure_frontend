@@ -54,3 +54,29 @@ export const projectKeys = {
     [...projectKeys.all, "list", q] as const,
   detail: (slug: string) => [...projectKeys.all, "detail", slug] as const,
 };
+
+/**
+ * Portal — customer-facing workspace.
+ *
+ * Hierarchical so any module can call
+ *   `queryClient.invalidateQueries({ queryKey: portalKeys.all })`
+ * and have every nested key recomputed.
+ */
+export const portalKeys = {
+  all: ["portal"] as const,
+  dashboard: () => [...portalKeys.all, "dashboard"] as const,
+  onboarding: () => [...portalKeys.all, "onboarding"] as const,
+  projects: {
+    list: (q: {
+      phase?: string;
+      health?: string;
+      search?: string;
+      page?: number;
+    }) => [...portalKeys.all, "projects", "list", q] as const,
+    detail: (slug: string) =>
+      [...portalKeys.all, "projects", "detail", slug] as const,
+    activity: (slug: string, cursor?: string) =>
+      [...portalKeys.all, "projects", "activity", slug, cursor ?? null] as const,
+  },
+  maintenance: () => [...portalKeys.all, "maintenance"] as const,
+};
